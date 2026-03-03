@@ -1,0 +1,169 @@
+[
+  {
+    "id": "node-1772535258866",
+    "type": "node",
+    "screen": "Onboarding",
+    "actions": [
+      {
+        "id": "action-1772535258866",
+        "label": "Sign up",
+        "connections": [
+          {
+            "targetId": "node-1772535765769",
+            "fromPosition": "right",
+            "toPosition": "left"
+          }
+        ]
+      },
+      {
+        "id": "action-1772535743200",
+        "label": "Login",
+        "connections": [
+          {
+            "targetId": "node-1772535907638",
+            "fromPosition": "right",
+            "toPosition": "left"
+          }
+        ]
+      },
+      {
+        "id": "action-1772535755050",
+        "label": "Continue as Guest",
+        "connections": [
+          {
+            "targetId": "node-1772535907638",
+            "fromPosition": "right",
+            "toPosition": "left"
+          }
+        ]
+      }
+    ],
+    "x": 12,
+    "y": 228
+  },
+  {
+    "id": "node-1772535765769",
+    "type": "node",
+    "screen": "Device Pairing",
+    "actions": [
+      {
+        "id": "action-1772535765769",
+        "label": "Pair Smartwatch",
+        "connections": []
+      },
+      {
+        "id": "action-1772535827952",
+        "label": "Pair AR Glasses",
+        "connections": []
+      },
+      {
+        "id": "action-1772535835905",
+        "label": "Finish Setup",
+        "connections": [
+          {
+            "targetId": "node-1772535907638",
+            "fromPosition": "left",
+            "toPosition": "right"
+          }
+        ]
+      },
+      {
+        "id": "action-1772535845405",
+        "label": "Skip",
+        "connections": [
+          {
+            "targetId": "node-1772535907638",
+            "fromPosition": "left",
+            "toPosition": "right"
+          }
+        ]
+      }
+    ],
+    "x": 943,
+    "y": 277
+  },
+  {
+    "id": "node-1772535907638",
+    "type": "node",
+    "screen": "Festival Map",
+    "actions": [
+      {
+        "id": "action-1772535907638",
+        "label": "Select Activation",
+        "connections": []
+      },
+      {
+        "id": "action-1772536040991",
+        "label": "View Friends",
+        "connections": []
+      },
+      {
+        "id": "action-1772536059032",
+        "label": "View Challenges",
+        "connections": []
+      },
+      {
+        "id": "action-1772536216189",
+        "label": "Enter Concert Mode",
+        "connections": []
+      },
+      {
+        "id": "action-1772536280035",
+        "label": "Open Profile",
+        "connections": [
+          {
+            "targetId": "node-1772536322225",
+            "fromPosition": "right",
+            "toPosition": "left"
+          }
+        ]
+      },
+      {
+        "id": "action-1772536285964",
+        "label": "Leave Festival",
+        "connections": [
+          {
+            "targetId": "node-1772536471646",
+            "fromPosition": "left",
+            "toPosition": "right"
+          }
+        ]
+      }
+    ],
+    "x": 445,
+    "y": 408
+  },
+  {
+    "id": "node-1772536322225",
+    "type": "node",
+    "screen": "Profile",
+    "actions": [
+      {
+        "id": "action-1772536322225",
+        "label": "Set profile picture",
+        "connections": []
+      },
+      {
+        "id": "action-1772536594130",
+        "label": "Set username",
+        "connections": []
+      }
+    ],
+    "x": 805,
+    "y": 698
+  },
+  {
+    "id": "node-1772536471646",
+    "type": "node",
+    "screen": "Daily Recap",
+    "actions": [
+      {
+        "id": "action-1772536471646",
+        "label": "View Stats",
+        "connections": []
+      }
+    ],
+    "x": 60,
+    "y": 739
+  }
+]
