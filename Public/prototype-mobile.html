@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VENU – Festival Companion</title>
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080814;
+      --surface:   #12122a;
+      --card:      rgba(255,255,255,0.05);
+      --border:    rgba(255,255,255,0.08);
+      --purple:    #a855f7;
+      --purple-d:  #7c3aed;
+      --pink:      #ec4899;
+      --cyan:      #22d3ee;
+      --yellow:    #facc15;
+      --green:     #4ade80;
+      --red:       #f87171;
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+      --phone-w:   375px;
+      --phone-h:   812px;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ambient glow blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 500px; height: 500px;
+      background: rgba(168,85,247,.18);
+      top: -150px; left: -150px;
+    }
+    body::after {
+      width: 500px; height: 500px;
+      background: rgba(34,211,238,.12);
+      bottom: -150px; right: -150px;
+    }
+
+    /* ─── DESKTOP WRAPPER ──────────────────────────────── */
+    .stage {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stage-label {
+      font-size: 11px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ─── PHONE SHELL ──────────────────────────────────── */
+    .phone {
+      width: var(--phone-w);
+      height: var(--phone-h);
+      background: #0e0e22;
+      border-radius: 54px;
+      border: 2px solid rgba(255,255,255,.12);
+      box-shadow:
+        0 0 0 8px #07071a,
+        0 0 0 10px rgba(168,85,247,.25),
+        0 40px 80px rgba(0,0,0,.7),
+        inset 0 1px 0 rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* dynamic island */
+    .island {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 34px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .island-cam {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #1a1a2e;
+      border: 1.5px solid #333;
+    }
+    .island-cam::after {
+      content: '';
+      display: block;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: #2a2a4e;
+      margin: 2px auto;
+    }
+
+    /* status bar */
+    .status-bar {
+      height: 50px;
+      padding: 0 28px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding-bottom: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+    .status-time { font-size: 15px; font-weight: 700; }
+    .status-icons { display: flex; gap: 5px; align-items: center; }
+    .status-icons svg { width: 16px; height: 16px; fill: currentColor; }
+
+    /* ─── SCREEN CONTAINER ─────────────────────────────── */
+    .screens {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease, transform .3s ease;
+      transform: translateX(30px);
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(0);
+    }
+    .screen.slide-out {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+
+    /* ─── HOME INDICATOR ───────────────────────────────── */
+    .home-indicator {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .home-indicator span {
+      width: 134px;
+      height: 5px;
+      background: rgba(255,255,255,.3);
+      border-radius: 3px;
+    }
+
+    /* ─── SHARED COMPONENTS ────────────────────────────── */
+    .screen-header {
+      padding: 20px 24px 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+    .screen-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      flex: 1;
+    }
+    .back-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+    .back-btn:hover { background: rgba(255,255,255,.1); }
+    .back-btn svg { width: 16px; height: 16px; stroke: var(--text); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,.1); }
+    .icon-btn svg { width: 18px; height: 18px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .search-bar {
+      margin: 0 24px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .search-bar svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+      width: 100%;
+    }
+    .search-bar input::placeholder { color: var(--muted); }
+
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 24px 16px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* pill badge */
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: .02em;
+    }
+    .badge-purple { background: rgba(168,85,247,.2); color: var(--purple); }
+    .badge-green  { background: rgba(74,222,128,.2);  color: var(--green); }
+    .badge-cyan   { background: rgba(34,211,238,.2);  color: var(--cyan); }
+    .badge-yellow { background: rgba(250,204,21,.2);  color: var(--yellow); }
+    .badge-pink   { background: rgba(236,72,153,.2);  color: var(--pink); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 0 – SPLASH                                   */
+    /* ─────────────────────────────────────────────────── */
+    #splash {
+      background: radial-gradient(ellipse at 50% 30%, #2d0a5e 0%, #080814 70%);
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+    .splash-logo {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .splash-logo .logo-icon {
+      width: 88px; height: 88px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      border-radius: 30px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 40px rgba(168,85,247,.5);
+    }
+    .splash-logo .logo-icon svg { width: 48px; height: 48px; fill: #fff; }
+    .splash-logo h1 {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      background: linear-gradient(135deg, #fff 0%, var(--purple) 60%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .splash-logo p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .splash-dots {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+    .splash-dots span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--purple);
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+    .splash-dots span:nth-child(2) { animation-delay: .2s; background: var(--pink); }
+    .splash-dots span:nth-child(3) { animation-delay: .4s; background: var(--cyan); }
+    @keyframes pulse-dot {
+      0%,80%,100% { opacity: .3; transform: scale(.7); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 1 – LOGIN                                    */
+    /* ─────────────────────────────────────────────────── */
+    #login {
+      background: var(--bg);
+      padding: 0 28px;
+      justify-content: center;
+      gap: 0;
+    }
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .auth-logo .mini-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      border-radius: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+      box-shadow: 0 0 24px rgba(168,85,247,.4);
+    }
+    .auth-logo .mini-icon svg { width: 28px; height: 28px; fill: #fff; }
+    .auth-logo h2 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+    .auth-logo p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+    .form-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 16px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-input:focus { border-color: var(--purple); }
+    .form-input::placeholder { color: var(--muted); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      border-radius: 16px;
+      border: none;
+      background: linear-gradient(135deg, var(--purple-d), var(--purple));
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: 6px;
+      box-shadow: 0 8px 24px rgba(124,58,237,.35);
+      letter-spacing: .01em;
+    }
+    .btn-primary:hover { opacity: .9; }
+    .btn-primary:active { transform: scale(.98); }
+
+    .auth-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0;
+      color: var(--muted); font-size: 12px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ''; flex: 1;
+      height: 1px; background: var(--border);
+    }
+
+    .btn-ghost {
+      width: 100%;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.08); }
+
+    .auth-switch {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .auth-switch a {
+      color: var(--purple);
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .auth-switch a:hover { text-decoration: underline; }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 2 – REGISTER                                 */
+    /* ─────────────────────────────────────────────────── */
+    #register {
+      background: var(--bg);
+      padding: 0 28px;
+      justify-content: center;
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 3 – HOMESCREEN                               */
+    /* ─────────────────────────────────────────────────── */
+    #home {
+      background: var(--bg);
+    }
+    .home-hero {
+      padding: 16px 24px 20px;
+      flex-shrink: 0;
+    }
+    .home-greeting {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .home-name {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .home-event {
+      margin-top: 16px;
+      background: linear-gradient(135deg, #1e0a40, #2d0a5e);
+      border: 1px solid rgba(168,85,247,.3);
+      border-radius: 20px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .home-event-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .home-event-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .home-event-info { flex: 1; }
+    .home-event-info .ev-title { font-size: 15px; font-weight: 700; }
+    .home-event-info .ev-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .live-dot {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 700; color: var(--green);
+    }
+    .live-dot::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      animation: blink 1.2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .home-nav-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+    .nav-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px 16px;
+      cursor: pointer;
+      transition: background .2s, transform .15s, border-color .2s;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .nav-card:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15); }
+    .nav-card:active { transform: scale(.97); }
+    .nav-card.full { grid-column: 1 / -1; flex-direction: row; align-items: center; padding: 16px 20px; }
+    .nav-card-icon {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-card-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .nav-card-label { font-size: 14px; font-weight: 700; }
+    .nav-card-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .nav-card.full .nav-card-text { flex: 1; margin-left: 4px; }
+    .nav-card .nav-arrow { margin-left: auto; opacity: .4; }
+    .nav-arrow svg { width: 16px; height: 16px; stroke: var(--text); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .ic-map    { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
+    .ic-friends { background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+    .ic-act    { background: linear-gradient(135deg, #f97316, #fb923c); }
+    .ic-notif  { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+    .ic-set    { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 4 – MAP                                      */
+    /* ─────────────────────────────────────────────────── */
+    #map-screen {
+      background: var(--bg);
+    }
+    .map-container {
+      flex: 1;
+      position: relative;
+      margin: 0 16px;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+    .map-container:active { cursor: grabbing; }
+    .map-inner {
+      position: absolute;
+      width: 680px;
+      height: 920px;
+      top: 0; left: 0;
+      will-change: transform;
+    }
+    .festival-map {
+      width: 100%; height: 100%;
+      display: block;
+    }
+    /* zone + person hit areas */
+    .map-zone, .map-person { cursor: pointer; }
+    .map-zone rect, .map-person circle { transition: opacity .15s; }
+    .map-zone:hover rect { opacity: .85; }
+    .map-person:hover circle { opacity: .85; }
+
+    .map-legend {
+      margin: 8px 16px 4px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; color: var(--muted);
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── Compass ── */
+    .map-compass {
+      position: absolute;
+      top: 10px; right: 10px;
+      width: 52px; height: 52px;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .map-compass-bg {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: rgba(8,8,20,.82);
+      border: 1.5px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(8px);
+    }
+    .map-compass svg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+    }
+    .compass-needle { transform-origin: 26px 26px; transition: transform .4s ease; }
+
+    /* ── Detail bottom sheet ── */
+    .map-detail {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #12122a;
+      border-top: 1px solid rgba(168,85,247,.35);
+      border-radius: 24px 24px 0 0;
+      padding: 0 20px 24px;
+      z-index: 40;
+      transform: translateY(100%);
+      transition: transform .32s cubic-bezier(.32,0,.15,1);
+      box-shadow: 0 -24px 48px rgba(0,0,0,.6);
+    }
+    .map-detail.open { transform: translateY(0); }
+    .map-detail-handle {
+      width: 40px; height: 4px;
+      background: rgba(255,255,255,.2);
+      border-radius: 2px;
+      margin: 12px auto 18px;
+    }
+    .map-detail-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .map-detail-icon {
+      width: 50px; height: 50px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .map-detail-title { font-size: 18px; font-weight: 800; }
+    .map-detail-sub   { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .map-detail-close {
+      margin-left: auto;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .map-detail-close svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .map-detail-row {
+      display: flex; align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; gap: 10px;
+    }
+    .map-detail-row:last-of-type { border-bottom: none; }
+    .map-detail-row .dr-label { color: var(--muted); flex: 0 0 86px; font-size: 12px; }
+    .map-detail-row .dr-val   { font-weight: 600; }
+    .map-detail-btn {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--purple-d), var(--purple));
+      color: #fff;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      margin-top: 16px;
+      box-shadow: 0 6px 20px rgba(124,58,237,.3);
+    }
+    /* person card inside detail */
+    .person-card-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 800;
+      flex-shrink: 0;
+      border: 3px solid rgba(255,255,255,.15);
+    }
+    .person-card-info { flex: 1; }
+    .person-card-info .pc-name { font-size: 18px; font-weight: 800; }
+    .person-card-info .pc-handle { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .person-card-info .pc-status { font-size: 12px; margin-top: 6px; }
+
+    .map-bottom-card {
+      margin: 8px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .map-stat { text-align: center; flex: 1; }
+    .map-stat .val { font-size: 20px; font-weight: 800; }
+    .map-stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+    .map-divider { width: 1px; background: var(--border); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 5 – FRIENDS                                  */
+    /* ─────────────────────────────────────────────────── */
+    #friends-screen { background: var(--bg); }
+    .friend-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .friend-item:last-child { border-bottom: none; }
+    .friend-item:hover { opacity: .8; }
+    .avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+    }
+    .avatar.online { border-color: var(--green); }
+    .friend-info { flex: 1; }
+    .friend-info .f-name { font-size: 15px; font-weight: 700; }
+    .friend-info .f-loc  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .friend-actions { display: flex; gap: 8px; }
+    .action-btn {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .action-btn:hover { background: rgba(255,255,255,.1); }
+    .action-btn svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .action-btn.highlight svg { stroke: var(--cyan); }
+
+    .section-title {
+      font-size: 12px; font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 6 – ACTIVITIES                               */
+    /* ─────────────────────────────────────────────────── */
+    #activities-screen { background: var(--bg); }
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item:hover { opacity: .8; }
+    .act-icon {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .act-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .act-info { flex: 1; }
+    .act-info .a-name { font-size: 15px; font-weight: 700; }
+    .act-info .a-where { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .act-right { text-align: right; }
+    .act-timer {
+      font-size: 13px; font-weight: 800;
+      color: var(--yellow);
+      letter-spacing: .02em;
+    }
+    .act-timer.soon { color: var(--red); animation: blink 1s infinite; }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      padding: 0 24px 14px;
+      overflow-x: auto;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s;
+    }
+    .filter-chip.active {
+      background: linear-gradient(135deg, var(--purple-d), var(--purple));
+      border-color: transparent;
+      color: #fff;
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 7 – NOTIFICATIONS                            */
+    /* ─────────────────────────────────────────────────── */
+    #notifications-screen { background: var(--bg); }
+    .notif-section {
+      margin-bottom: 20px;
+    }
+    .notif-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .notif-icon {
+      width: 38px; height: 38px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-icon svg { width: 18px; height: 18px; fill: #fff; }
+    .notif-text { flex: 1; }
+    .notif-text .n-title { font-size: 14px; font-weight: 700; }
+    .notif-text .n-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* toggle */
+    .toggle-wrap {
+      position: relative;
+      width: 48px; height: 28px;
+      flex-shrink: 0;
+    }
+    .toggle-wrap input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: transform .2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,.3);
+    }
+    .toggle-wrap input:checked + .toggle-track { background: var(--purple); }
+    .toggle-wrap input:checked + .toggle-track::after { transform: translateX(20px); }
+
+    /* notification cards feed */
+    .feed-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .feed-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .feed-icon svg { width: 16px; height: 16px; fill: #fff; }
+    .feed-body { flex: 1; }
+    .feed-body .fb-title { font-size: 14px; font-weight: 600; line-height: 1.3; }
+    .feed-body .fb-time  { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .feed-unread {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--purple);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN 8 – SETTINGS                                 */
+    /* ─────────────────────────────────────────────────── */
+    #settings-screen { background: var(--bg); }
+    .profile-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 24px 24px;
+      flex-shrink: 0;
+    }
+    .profile-avatar-wrap {
+      position: relative;
+      margin-bottom: 14px;
+    }
+    .profile-avatar {
+      width: 84px; height: 84px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 800;
+      border: 3px solid rgba(168,85,247,.4);
+      box-shadow: 0 0 30px rgba(168,85,247,.3);
+    }
+    .profile-edit-btn {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--purple);
+      border: 2px solid var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .profile-edit-btn svg { width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .profile-name { font-size: 20px; font-weight: 800; }
+    .profile-email { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    .settings-section { padding: 0 24px; margin-bottom: 20px; flex-shrink: 0; }
+    .settings-group {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:hover { background: rgba(255,255,255,.05); }
+    .settings-row .sr-icon {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .settings-row .sr-icon svg { width: 16px; height: 16px; fill: #fff; }
+    .settings-row .sr-label { flex: 1; font-size: 14px; font-weight: 600; }
+    .settings-row .sr-value { font-size: 13px; color: var(--muted); }
+    .settings-row .sr-arrow svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .danger-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(248,113,113,.3);
+      background: rgba(248,113,113,.08);
+      color: var(--red);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .danger-btn:hover { background: rgba(248,113,113,.15); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* TOAST                                               */
+    /* ─────────────────────────────────────────────────── */
+    #toast {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(30,30,50,.95);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCALABLE WRAPPER (desktop fit)                      */
+    /* ─────────────────────────────────────────────────── */
+    .phone-scale-wrap {
+      transform-origin: top center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-label">VENU · Mobile Prototype</div>
+
+  <div class="phone-scale-wrap">
+  <div class="phone" id="phone">
+
+    <!-- Dynamic Island -->
+    <div class="island">
+      <div class="island-cam"></div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time" id="clock">21:45</span>
+      <div class="status-icons">
+        <!-- signal -->
+        <svg viewBox="0 0 24 24"><rect x="2" y="14" width="3" height="8" rx="1"/><rect x="8" y="9" width="3" height="13" rx="1"/><rect x="14" y="4" width="3" height="18" rx="1"/><rect x="20" y="0" width="3" height="22" rx="1" opacity=".3"/></svg>
+        <!-- wifi -->
+        <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+        <!-- battery -->
+        <svg viewBox="0 0 24 12" stroke="currentColor" fill="none" stroke-width="1.5"><rect x="0.75" y="0.75" width="19.5" height="10.5" rx="2.5"/><rect x="20.25" y="3.5" width="3" height="5" rx="1.5" fill="currentColor"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5" fill="currentColor"/></svg>
+      </div>
+    </div>
+
+    <!-- Screens -->
+    <div class="screens">
+
+      <!-- ░░ SPLASH ░░ -->
+      <div class="screen active" id="splash">
+        <div class="splash-logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 2L4 7v10l5 5h6l5-5V7l-5-5H9z"/><path d="M12 8v4l3 2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          </div>
+          <h1>VENU</h1>
+          <p>Festival Companion</p>
+        </div>
+        <div class="splash-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <!-- ░░ LOGIN ░░ -->
+      <div class="screen" id="login">
+        <div class="auth-logo">
+          <div class="mini-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 2L4 7v10l5 5h6l5-5V7l-5-5H9z"/><path d="M12 8v4l3 2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          </div>
+          <h2>Welcome back</h2>
+          <p>Sign in to your VENU account</p>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-input" type="email" placeholder="you@example.com" value="alex@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input class="form-input" type="password" placeholder="••••••••" value="password" />
+        </div>
+        <button class="btn-primary" onclick="go('home')">Sign In</button>
+        <div class="auth-divider">or</div>
+        <button class="btn-ghost" onclick="toast('👾 AR Glasses login coming soon!')">Continue with AR Device</button>
+        <div class="auth-switch">
+          Don't have an account? <a onclick="go('register')">Sign up</a>
+        </div>
+      </div>
+
+      <!-- ░░ REGISTER ░░ -->
+      <div class="screen" id="register">
+        <div class="auth-logo">
+          <div class="mini-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 2L4 7v10l5 5h6l5-5V7l-5-5H9z"/><path d="M12 8v4l3 2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          </div>
+          <h2>Create account</h2>
+          <p>Join VENU and never miss a vibe</p>
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input class="form-input" type="text" placeholder="Alex Popescu" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-input" type="email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input class="form-input" type="tel" placeholder="+40 7XX XXX XXX" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input class="form-input" type="password" placeholder="Min 8 characters" />
+        </div>
+        <button class="btn-primary" onclick="go('home'); toast('🎉 Account created!')">Create Account</button>
+        <div class="auth-switch">
+          Already have an account? <a onclick="go('login')">Sign in</a>
+        </div>
+      </div>
+
+      <!-- ░░ HOME ░░ -->
+      <div class="screen" id="home">
+        <div class="home-hero">
+          <div class="home-greeting">Good evening,</div>
+          <div class="home-name">Alex 👋</div>
+          <div class="home-event">
+            <div class="home-event-icon">
+              <svg viewBox="0 0 24 24"><path d="M9 2L4 7v10l5 5h6l5-5V7l-5-5H9z"/></svg>
+            </div>
+            <div class="home-event-info">
+              <div class="ev-title">Electric Castle 2026</div>
+              <div class="ev-sub">Banffy Castle · Cluj-Napoca</div>
+            </div>
+            <span class="live-dot">LIVE</span>
+          </div>
+        </div>
+        <div class="home-nav-grid">
+          <div class="nav-card" onclick="go('map-screen')">
+            <div class="nav-card-icon ic-map">
+              <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="rgba(0,0,0,.4)"/></svg>
+            </div>
+            <div>
+              <div class="nav-card-label">Map</div>
+              <div class="nav-card-sub">3 friends nearby</div>
+            </div>
+          </div>
+          <div class="nav-card" onclick="go('friends-screen')">
+            <div class="nav-card-icon ic-friends">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="nav-card-label">Friends</div>
+              <div class="nav-card-sub">4 online</div>
+            </div>
+          </div>
+          <div class="nav-card" onclick="go('activities-screen')">
+            <div class="nav-card-icon ic-act">
+              <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div>
+              <div class="nav-card-label">Activities</div>
+              <div class="nav-card-sub">5 happening now</div>
+            </div>
+          </div>
+          <div class="nav-card" onclick="go('notifications-screen')">
+            <div class="nav-card-icon ic-notif">
+              <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div>
+              <div class="nav-card-label">Alerts</div>
+              <div class="nav-card-sub">2 new</div>
+            </div>
+          </div>
+          <div class="nav-card full" onclick="go('settings-screen')">
+            <div class="nav-card-icon ic-set">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <div class="nav-card-text">
+              <div class="nav-card-label">Settings</div>
+              <div class="nav-card-sub">Profile · Privacy · Devices</div>
+            </div>
+            <div class="nav-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ MAP ░░ -->
+      <div class="screen" id="map-screen">
+        <div class="screen-header">
+          <div class="back-btn" onclick="go('home')">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <h1>Festival Map</h1>
+          <div class="icon-btn" onclick="mapRecenter()">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+          </div>
+        </div>
+
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>You</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#22d3ee"></div>Friends</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#facc15"></div>Activities</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>Venues</div>
+        </div>
+
+        <div class="map-container" id="mapContainer">
+
+          <!-- Pannable inner map -->
+          <div class="map-inner" id="mapInner">
+            <svg class="festival-map" viewBox="0 0 680 920" xmlns="http://www.w3.org/2000/svg">
+              <!-- bg -->
+              <rect width="680" height="920" fill="#0c180c"/>
+              <!-- grid texture lines -->
+              <line x1="170" y1="0" x2="170" y2="920" stroke="#1a2a1a" stroke-width="1"/>
+              <line x1="510" y1="0" x2="510" y2="920" stroke="#1a2a1a" stroke-width="1"/>
+              <line x1="0" y1="460" x2="680" y2="460" stroke="#1a2a1a" stroke-width="1"/>
+              <!-- main paths -->
+              <rect x="300" y="0"   width="80"  height="920" fill="#182818"/>
+              <rect x="0"   y="400" width="680" height="80"  fill="#182818"/>
+              <!-- secondary paths -->
+              <rect x="0"   y="160" width="300" height="30"  fill="#152015" opacity=".8"/>
+              <rect x="380" y="160" width="300" height="30"  fill="#152015" opacity=".8"/>
+              <rect x="0"   y="660" width="300" height="30"  fill="#152015" opacity=".8"/>
+              <rect x="380" y="660" width="300" height="30"  fill="#152015" opacity=".8"/>
+
+              <!-- ═══ VENUES ═══ -->
+
+              <!-- Main Stage -->
+              <g class="map-zone" onclick="showZone('mainStage')">
+                <rect x="60" y="50" width="200" height="110" rx="12" fill="#1a3a1a" stroke="#4ade80" stroke-width="1.5"/>
+                <text x="160" y="94" text-anchor="middle" font-size="28" font-family="sans-serif">🎤</text>
+                <text x="160" y="120" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="700" font-family="sans-serif">MAIN STAGE</text>
+                <text x="160" y="136" text-anchor="middle" fill="#4ade8099" font-size="10" font-family="sans-serif">Irina Rimes · 5min</text>
+                <!-- activity pulse -->
+                <circle cx="238" cy="62" r="8" fill="#facc15" opacity=".9"/>
+                <circle cx="238" cy="62" r="12" fill="none" stroke="#facc15" stroke-width="1.5" opacity=".4"/>
+                <text x="238" y="66" text-anchor="middle" fill="#000" font-size="8" font-weight="800" font-family="sans-serif">!</text>
+              </g>
+
+              <!-- Stage 2 -->
+              <g class="map-zone" onclick="showZone('stage2')">
+                <rect x="420" y="50" width="200" height="110" rx="12" fill="#1a3a1a" stroke="#4ade80" stroke-width="1.5"/>
+                <text x="520" y="94" text-anchor="middle" font-size="28" font-family="sans-serif">🎸</text>
+                <text x="520" y="120" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="700" font-family="sans-serif">STAGE 2</text>
+                <text x="520" y="136" text-anchor="middle" fill="#4ade8099" font-size="10" font-family="sans-serif">INNA · 2h 10min</text>
+              </g>
+
+              <!-- First Aid -->
+              <g class="map-zone" onclick="showZone('firstAid')">
+                <rect x="60" y="210" width="110" height="80" rx="12" fill="#2a1010" stroke="#f87171" stroke-width="1.5"/>
+                <text x="115" y="244" text-anchor="middle" font-size="22" font-family="sans-serif">⚕️</text>
+                <text x="115" y="272" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700" font-family="sans-serif">FIRST AID</text>
+              </g>
+
+              <!-- Merch -->
+              <g class="map-zone" onclick="showZone('merch')">
+                <rect x="510" y="210" width="120" height="80" rx="12" fill="#1a1a30" stroke="#6366f1" stroke-width="1.5"/>
+                <text x="570" y="244" text-anchor="middle" font-size="22" font-family="sans-serif">👕</text>
+                <text x="570" y="272" text-anchor="middle" fill="#818cf8" font-size="11" font-weight="700" font-family="sans-serif">MERCH</text>
+              </g>
+
+              <!-- Food Zone -->
+              <g class="map-zone" onclick="showZone('food')">
+                <rect x="60" y="490" width="180" height="120" rx="12" fill="#2a1e10" stroke="#fb923c" stroke-width="1.5"/>
+                <text x="150" y="540" text-anchor="middle" font-size="28" font-family="sans-serif">🍔</text>
+                <text x="150" y="568" text-anchor="middle" fill="#fb923c" font-size="13" font-weight="700" font-family="sans-serif">FOOD ZONE</text>
+                <text x="150" y="584" text-anchor="middle" fill="#fb923c99" font-size="10" font-family="sans-serif">8 stalls open</text>
+              </g>
+
+              <!-- Ice Cream -->
+              <g class="map-zone" onclick="showZone('iceCream')">
+                <rect x="430" y="490" width="160" height="110" rx="12" fill="#2a1020" stroke="#ec4899" stroke-width="1.5"/>
+                <text x="510" y="535" text-anchor="middle" font-size="28" font-family="sans-serif">🍦</text>
+                <text x="510" y="560" text-anchor="middle" fill="#ec4899" font-size="12" font-weight="700" font-family="sans-serif">ICE CREAM</text>
+                <text x="510" y="575" text-anchor="middle" fill="#ec489999" font-size="10" font-family="sans-serif">FREE · 30min left</text>
+                <!-- pulse -->
+                <circle cx="572" cy="502" r="8" fill="#facc15" opacity=".9"/>
+                <circle cx="572" cy="502" r="12" fill="none" stroke="#facc15" stroke-width="1.5" opacity=".4"/>
+                <text x="572" y="506" text-anchor="middle" fill="#000" font-size="8" font-weight="800" font-family="sans-serif">!</text>
+              </g>
+
+              <!-- Toilets -->
+              <g class="map-zone" onclick="showZone('toilets')">
+                <rect x="60" y="680" width="140" height="80" rx="12" fill="#10202a" stroke="#22d3ee" stroke-width="1.5"/>
+                <text x="130" y="714" text-anchor="middle" font-size="22" font-family="sans-serif">🚻</text>
+                <text x="130" y="742" text-anchor="middle" fill="#22d3ee" font-size="12" font-weight="700" font-family="sans-serif">TOILETS</text>
+              </g>
+
+              <!-- Board Games -->
+              <g class="map-zone" onclick="showZone('boardGames')">
+                <rect x="390" y="680" width="200" height="100" rx="12" fill="#1e1e2a" stroke="#a855f7" stroke-width="1.5"/>
+                <text x="490" y="720" text-anchor="middle" font-size="28" font-family="sans-serif">🎲</text>
+                <text x="490" y="748" text-anchor="middle" fill="#a855f7" font-size="12" font-weight="700" font-family="sans-serif">BOARD GAMES</text>
+                <text x="490" y="762" text-anchor="middle" fill="#a855f799" font-size="10" font-family="sans-serif">15min wait</text>
+              </g>
+
+              <!-- AR Portal -->
+              <g class="map-zone" onclick="showZone('arPortal')">
+                <rect x="270" y="490" width="110" height="80" rx="12" fill="#1a102a" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="6,3"/>
+                <text x="325" y="525" text-anchor="middle" font-size="22" font-family="sans-serif">🌀</text>
+                <text x="325" y="552" text-anchor="middle" fill="#ec4899" font-size="10" font-weight="700" font-family="sans-serif">AR PORTAL</text>
+              </g>
+
+              <!-- ═══ PEOPLE ═══ -->
+
+              <!-- YOU -->
+              <g>
+                <circle cx="340" cy="660" r="16" fill="#a855f7" opacity=".2"/>
+                <circle cx="340" cy="660" r="10" fill="#a855f7"/>
+                <!-- direction cone -->
+                <path d="M340,648 L332,630 L348,630 Z" fill="#a855f7" opacity=".6" id="youCone"/>
+                <circle cx="340" cy="660" r="4" fill="#fff" opacity=".8"/>
+                <text x="340" y="688" text-anchor="middle" fill="#a855f7" font-size="12" font-weight="800" font-family="sans-serif">YOU</text>
+              </g>
+
+              <!-- Dashed line from YOU to Maria -->
+              <line x1="344" y1="648" x2="436" y2="322" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="6,4" opacity=".5"/>
+
+              <!-- Maria -->
+              <g class="map-person" onclick="showPerson('maria')">
+                <circle cx="440" cy="314" r="18" fill="#22d3ee" opacity=".15"/>
+                <circle cx="440" cy="314" r="11" fill="#22d3ee"/>
+                <text x="440" y="318" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" font-family="sans-serif">M</text>
+                <text x="440" y="342" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="700" font-family="sans-serif">MARIA</text>
+                <text x="440" y="355" text-anchor="middle" fill="#22d3ee88" font-size="9" font-family="sans-serif">120m away</text>
+              </g>
+
+              <!-- Ionut -->
+              <g class="map-person" onclick="showPerson('ionut')">
+                <circle cx="190" cy="310" r="18" fill="#22d3ee" opacity=".15"/>
+                <circle cx="190" cy="310" r="11" fill="#0ea5e9"/>
+                <text x="190" y="314" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" font-family="sans-serif">I</text>
+                <text x="190" y="338" text-anchor="middle" fill="#0ea5e9" font-size="11" font-weight="700" font-family="sans-serif">IONUŢ</text>
+                <text x="190" y="351" text-anchor="middle" fill="#0ea5e988" font-size="9" font-family="sans-serif">80m away</text>
+              </g>
+
+              <!-- Andrei -->
+              <g class="map-person" onclick="showPerson('andrei')">
+                <circle cx="490" cy="740" r="18" fill="#4ade80" opacity=".15"/>
+                <circle cx="490" cy="740" r="11" fill="#22d3ee"/>
+                <text x="490" y="744" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" font-family="sans-serif">A</text>
+                <text x="490" y="768" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="700" font-family="sans-serif">ANDREI</text>
+                <text x="490" y="781" text-anchor="middle" fill="#4ade8088" font-size="9" font-family="sans-serif">200m away</text>
+              </g>
+
+              <!-- Laura -->
+              <g class="map-person" onclick="showPerson('laura')">
+                <circle cx="548" cy="130" r="18" fill="#facc15" opacity=".15"/>
+                <circle cx="548" cy="130" r="11" fill="#f59e0b"/>
+                <text x="548" y="134" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" font-family="sans-serif">L</text>
+                <text x="548" y="158" text-anchor="middle" fill="#facc15" font-size="11" font-weight="700" font-family="sans-serif">LAURA</text>
+                <text x="548" y="171" text-anchor="middle" fill="#facc1588" font-size="9" font-family="sans-serif">310m away</text>
+              </g>
+
+            </svg>
+          </div><!-- /map-inner -->
+
+          <!-- Compass overlay -->
+          <div class="map-compass" id="mapCompass">
+            <div class="map-compass-bg"></div>
+            <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+              <!-- tick marks -->
+              <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+              <line x1="26" y1="5"  x2="26" y2="10" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/>
+              <line x1="47" y1="26" x2="42" y2="26" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+              <line x1="5"  y1="26" x2="10" y2="26" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+              <line x1="26" y1="47" x2="26" y2="42" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+              <!-- Cardinal labels -->
+              <text x="26" y="17" text-anchor="middle" fill="#f87171" font-size="7" font-weight="800" font-family="sans-serif">N</text>
+              <text x="39" y="30" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="6" font-family="sans-serif">E</text>
+              <text x="13" y="30" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="6" font-family="sans-serif">W</text>
+              <text x="26" y="42" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="6" font-family="sans-serif">S</text>
+              <!-- Needle group -->
+              <g id="compassNeedle">
+                <!-- North (red) -->
+                <polygon points="26,8 23,26 26,22 29,26" fill="#f87171"/>
+                <!-- South (white) -->
+                <polygon points="26,44 23,26 26,30 29,26" fill="rgba(255,255,255,.35)"/>
+                <!-- center dot -->
+                <circle cx="26" cy="26" r="3" fill="#fff" opacity=".8"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Drag hint -->
+          <div id="mapDragHint" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#94a3b8;font-size:10px;padding:4px 10px;border-radius:20px;pointer-events:none;transition:opacity .5s;">Hold & drag to explore</div>
+
+          <!-- Detail bottom sheet -->
+          <div class="map-detail" id="mapDetail">
+            <div class="map-detail-handle"></div>
+            <div class="map-detail-header" id="mapDetailHeader"></div>
+            <div id="mapDetailBody"></div>
+            <button class="map-detail-btn" id="mapDetailBtn">Get Directions</button>
+          </div>
+
+        </div><!-- /map-container -->
+
+        <div class="map-bottom-card">
+          <div class="map-stat">
+            <div class="val" style="color:var(--cyan)">4</div>
+            <div class="lbl">Friends</div>
+          </div>
+          <div class="map-divider"></div>
+          <div class="map-stat">
+            <div class="val" style="color:var(--yellow)">5</div>
+            <div class="lbl">Activities</div>
+          </div>
+          <div class="map-divider"></div>
+          <div class="map-stat">
+            <div class="val" style="color:var(--green)">Live</div>
+            <div class="lbl">Status</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ FRIENDS ░░ -->
+      <div class="screen" id="friends-screen">
+        <div class="screen-header">
+          <div class="back-btn" onclick="go('home')">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <h1>Friends</h1>
+          <div class="icon-btn" onclick="toast('Friend request sent!')">
+            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          </div>
+        </div>
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search friends..." />
+        </div>
+        <div class="scroll-area">
+          <div class="section-title">Online Now</div>
+
+          <div class="friend-item">
+            <div class="avatar online" style="background:linear-gradient(135deg,#a855f7,#ec4899)">M</div>
+            <div class="friend-info">
+              <div class="f-name">Maria Ionescu</div>
+              <div class="f-loc">📍 Near Main Stage · 120m</div>
+            </div>
+            <div class="friend-actions">
+              <div class="action-btn highlight" onclick="toast('📍 Maria on map!')">
+                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="action-btn" onclick="toast('💬 Chat opened!')">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="friend-item">
+            <div class="avatar online" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)">I</div>
+            <div class="friend-info">
+              <div class="f-name">Ionuț Radu</div>
+              <div class="f-loc">📍 Food Zone · 80m</div>
+            </div>
+            <div class="friend-actions">
+              <div class="action-btn highlight" onclick="toast('📍 Ionuț on map!')">
+                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="action-btn" onclick="toast('💬 Chat opened!')">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="friend-item">
+            <div class="avatar online" style="background:linear-gradient(135deg,#4ade80,#22d3ee)">A</div>
+            <div class="friend-info">
+              <div class="f-name">Andrei Mihai</div>
+              <div class="f-loc">📍 Board Games · 200m</div>
+            </div>
+            <div class="friend-actions">
+              <div class="action-btn highlight" onclick="toast('📍 Andrei on map!')">
+                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="action-btn" onclick="toast('💬 Chat opened!')">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="friend-item">
+            <div class="avatar online" style="background:linear-gradient(135deg,#facc15,#fb923c)">L</div>
+            <div class="friend-info">
+              <div class="f-name">Laura Constantin</div>
+              <div class="f-loc">📍 Stage 2 · 310m</div>
+            </div>
+            <div class="friend-actions">
+              <div class="action-btn highlight" onclick="toast('📍 Laura on map!')">
+                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="action-btn" onclick="toast('💬 Chat opened!')">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:20px">Offline</div>
+
+          <div class="friend-item" style="opacity:.5">
+            <div class="avatar" style="background:#2a2a3a">D</div>
+            <div class="friend-info">
+              <div class="f-name">Dan Popa</div>
+              <div class="f-loc">Last seen 2h ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ ACTIVITIES ░░ -->
+      <div class="screen" id="activities-screen">
+        <div class="screen-header">
+          <div class="back-btn" onclick="go('home')">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <h1>Activities</h1>
+        </div>
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search activities..." />
+        </div>
+        <div class="filter-row">
+          <div class="filter-chip active">All</div>
+          <div class="filter-chip" onclick="filterChip(this)">Music</div>
+          <div class="filter-chip" onclick="filterChip(this)">Food</div>
+          <div class="filter-chip" onclick="filterChip(this)">Games</div>
+          <div class="filter-chip" onclick="filterChip(this)">Free</div>
+          <div class="filter-chip" onclick="filterChip(this)">AR</div>
+        </div>
+        <div class="scroll-area">
+
+          <div class="activity-item" onclick="toast('📅 Added to your schedule!')">
+            <div class="act-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">
+              <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="act-info">
+              <div class="a-name">Irina Rimes</div>
+              <div class="a-where">🎪 Main Stage</div>
+            </div>
+            <div class="act-right">
+              <div class="act-timer soon">5 min</div>
+              <div class="badge badge-pink" style="margin-top:4px">Music</div>
+            </div>
+          </div>
+
+          <div class="activity-item" onclick="toast('📅 Added to your schedule!')">
+            <div class="act-icon" style="background:linear-gradient(135deg,#0ea5e9,#6366f1)">
+              <svg viewBox="0 0 24 24"><rect x="2" y="2" width="9" height="9" rx="1"/><rect x="13" y="2" width="9" height="9" rx="1"/><rect x="2" y="13" width="9" height="9" rx="1"/><rect x="13" y="13" width="9" height="9" rx="1"/></svg>
+            </div>
+            <div class="act-info">
+              <div class="a-name">Board Games</div>
+              <div class="a-where">🎮 Fun Zone</div>
+            </div>
+            <div class="act-right">
+              <div class="act-timer">15 min</div>
+              <div class="badge badge-purple" style="margin-top:4px">Games</div>
+            </div>
+          </div>
+
+          <div class="activity-item" onclick="toast('🍦 Free ice cream claimed!')">
+            <div class="act-icon" style="background:linear-gradient(135deg,#f97316,#facc15)">
+              <svg viewBox="0 0 24 24"><path d="M12 22c0 0-8-7.5-8-12a8 8 0 0 1 16 0c0 4.5-8 12-8 12z"/><circle cx="12" cy="10" r="3" fill="rgba(0,0,0,.3)"/></svg>
+            </div>
+            <div class="act-info">
+              <div class="a-name">Free Ice Cream 🍦</div>
+              <div class="a-where">🏪 Sponsor Booth</div>
+            </div>
+            <div class="act-right">
+              <div class="act-timer">30 min</div>
+              <div class="badge badge-yellow" style="margin-top:4px">Free</div>
+            </div>
+          </div>
+
+          <div class="activity-item" onclick="toast('🥁 Starting in 2h!')">
+            <div class="act-icon" style="background:linear-gradient(135deg,#4ade80,#22d3ee)">
+              <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="act-info">
+              <div class="a-name">INNA</div>
+              <div class="a-where">🎪 Stage 2</div>
+            </div>
+            <div class="act-right">
+              <div class="act-timer">2h 10min</div>
+              <div class="badge badge-green" style="margin-top:4px">Music</div>
+            </div>
+          </div>
+
+          <div class="activity-item" onclick="toast('👓 AR experience launched!')">
+            <div class="act-icon" style="background:linear-gradient(135deg,#ec4899,#f43f5e)">
+              <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="act-info">
+              <div class="a-name">AR Portal Hunt</div>
+              <div class="a-where">🌐 Entire Venue</div>
+            </div>
+            <div class="act-right">
+              <div class="act-timer">Now</div>
+              <div class="badge badge-pink" style="margin-top:4px">AR</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ░░ NOTIFICATIONS ░░ -->
+      <div class="screen" id="notifications-screen">
+        <div class="screen-header">
+          <div class="back-btn" onclick="go('home')">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <h1>Notifications</h1>
+        </div>
+        <div class="scroll-area">
+
+          <div class="section-title">Alert Settings</div>
+
+          <div class="notif-section">
+            <div class="notif-item">
+              <div class="notif-icon" style="background:linear-gradient(135deg,#f97316,#facc15)">
+                <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <div class="notif-text">
+                <div class="n-title">For Activities</div>
+                <div class="n-sub">Alerts when activities are starting</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked onchange="toast('Activities alerts: ' + (this.checked ? 'ON':'OFF'))"/>
+                <div class="toggle-track"></div>
+              </label>
+            </div>
+
+            <div class="notif-item">
+              <div class="notif-icon" style="background:linear-gradient(135deg,#8b5cf6,#a855f7)">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div class="notif-text">
+                <div class="n-title">For Friends</div>
+                <div class="n-sub">When friends are nearby</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked onchange="toast('Friend alerts: ' + (this.checked ? 'ON':'OFF'))"/>
+                <div class="toggle-track"></div>
+              </label>
+            </div>
+
+            <div class="notif-item">
+              <div class="notif-icon" style="background:linear-gradient(135deg,#ec4899,#f43f5e)">
+                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </div>
+              <div class="notif-text">
+                <div class="n-title">Sponsor Deals</div>
+                <div class="n-sub">Free stuff & exclusive offers</div>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" onchange="toast('Sponsor alerts: ' + (this.checked ? 'ON':'OFF'))"/>
+                <div class="toggle-track"></div>
+              </label>
+            </div>
+          </div>
+
+          <div class="section-title">Recent</div>
+
+          <div class="feed-item">
+            <div class="feed-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">
+              <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </div>
+            <div class="feed-body">
+              <div class="fb-title">Irina Rimes starts in 5 min at Main Stage!</div>
+              <div class="fb-time">Just now</div>
+            </div>
+            <div class="feed-unread"></div>
+          </div>
+
+          <div class="feed-item">
+            <div class="feed-icon" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div class="feed-body">
+              <div class="fb-title">Maria is 120m from you near Main Stage</div>
+              <div class="fb-time">3 min ago</div>
+            </div>
+            <div class="feed-unread"></div>
+          </div>
+
+          <div class="feed-item">
+            <div class="feed-icon" style="background:linear-gradient(135deg,#facc15,#f97316)">
+              <svg viewBox="0 0 24 24"><path d="M12 22c0 0-8-7.5-8-12a8 8 0 0 1 16 0c0 4.5-8 12-8 12z"/></svg>
+            </div>
+            <div class="feed-body">
+              <div class="fb-title">🍦 Free ice cream at Sponsor Booth! 30 min left</div>
+              <div class="fb-time">12 min ago</div>
+            </div>
+          </div>
+
+          <div class="feed-item">
+            <div class="feed-icon" style="background:linear-gradient(135deg,#6b7280,#374151)">
+              <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="feed-body">
+              <div class="fb-title">AR Portal Hunt is live across the venue</div>
+              <div class="fb-time">1h ago</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ░░ SETTINGS ░░ -->
+      <div class="screen" id="settings-screen">
+        <div class="screen-header">
+          <div class="back-btn" onclick="go('home')">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <h1>Settings</h1>
+        </div>
+        <div class="scroll-area">
+          <div class="profile-hero">
+            <div class="profile-avatar-wrap">
+              <div class="profile-avatar">A</div>
+              <div class="profile-edit-btn" onclick="toast('📷 Upload photo')">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+            </div>
+            <div class="profile-name">Alex Popescu</div>
+            <div class="profile-email">alex@email.com</div>
+          </div>
+
+          <div class="settings-section">
+            <div class="section-title" style="padding:0 0 8px">Profile</div>
+            <div class="settings-group">
+              <div class="settings-row" onclick="toast('✏️ Edit name')">
+                <div class="sr-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                  <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div class="sr-label">Name</div>
+                <div class="sr-value">Alex Popescu</div>
+                <div class="sr-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="settings-row" onclick="toast('✏️ Edit email')">
+                <div class="sr-icon" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)">
+                  <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </div>
+                <div class="sr-label">Email</div>
+                <div class="sr-value">alex@email.com</div>
+                <div class="sr-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="settings-row" onclick="toast('✏️ Edit phone')">
+                <div class="sr-icon" style="background:linear-gradient(135deg,#4ade80,#22d3ee)">
+                  <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <div class="sr-label">Phone</div>
+                <div class="sr-value">+40 712 345 678</div>
+                <div class="sr-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="section-title" style="padding:0 0 8px">Privacy</div>
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="sr-icon" style="background:linear-gradient(135deg,#f97316,#facc15)">
+                  <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div class="sr-label">Allow Map Tracking</div>
+                <label class="toggle-wrap" style="margin-left:auto">
+                  <input type="checkbox" checked onchange="toast('Location: ' + (this.checked?'Shared':'Hidden'))"/>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="sr-icon" style="background:linear-gradient(135deg,#8b5cf6,#a855f7)">
+                  <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                </div>
+                <div class="sr-label">Friends can see me</div>
+                <label class="toggle-wrap" style="margin-left:auto">
+                  <input type="checkbox" checked onchange="toast('Visibility: ' + (this.checked?'ON':'OFF'))"/>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="section-title" style="padding:0 0 8px">Devices</div>
+            <div class="settings-group">
+              <div class="settings-row" onclick="toast('👓 AR Glasses connected!')">
+                <div class="sr-icon" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)">
+                  <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <div class="sr-label">AR Glasses</div>
+                <div class="sr-value" style="color:var(--green)">Connected</div>
+                <div class="sr-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+              <div class="settings-row" onclick="toast('⌚ Smartwatch connected!')">
+                <div class="sr-icon" style="background:linear-gradient(135deg,#ec4899,#a855f7)">
+                  <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="7"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="12" x2="14" y2="14"/></svg>
+                </div>
+                <div class="sr-label">Smartwatch</div>
+                <div class="sr-value" style="color:var(--green)">Connected</div>
+                <div class="sr-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <button class="danger-btn" onclick="go('login'); toast('👋 Signed out')">Sign Out</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /screens -->
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- Home Indicator -->
+    <div class="home-indicator"><span></span></div>
+
+  </div><!-- /phone -->
+  </div><!-- /scale-wrap -->
+
+</div><!-- /stage -->
+
+<script>
+  // ─── clock ───────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('clock').textContent = h + ':' + m;
+  }
+  updateClock();
+  setInterval(updateClock, 10000);
+
+  // ─── navigation ──────────────────────────────────────
+  let current = 'splash';
+
+  function go(id) {
+    const prev = document.getElementById(current);
+    const next = document.getElementById(id);
+    if (!next || current === id) return;
+    prev.classList.add('slide-out');
+    setTimeout(() => { prev.classList.remove('active', 'slide-out'); }, 300);
+    next.classList.add('active');
+    current = id;
+  }
+
+  // ─── auto-advance splash ──────────────────────────────
+  setTimeout(() => go('login'), 2200);
+
+  // ─── toast ───────────────────────────────────────────
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  // ─── filter chips ─────────────────────────────────────
+  function filterChip(el) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    toast('Filtered: ' + el.textContent);
+  }
+
+  // ─── MAP: pan, compass, detail sheet ────────────────────
+  (function() {
+    // ── data ──
+    const ZONES = {
+      mainStage:  { icon:'🎤', color:'#4ade80', bg:'#1a3a1a', title:'Main Stage',  sub:'Electric Castle · Zone A', rows:[ ['Status','🟢 LIVE NOW'],['Artist','Irina Rimes'],['Starts in','5 minutes'],['Capacity','~3 000 people'] ], btn:'Add to Schedule' },
+      stage2:     { icon:'🎸', color:'#4ade80', bg:'#1a3a1a', title:'Stage 2',      sub:'Electric Castle · Zone B', rows:[ ['Status','🟡 Up next'],['Artist','INNA'],['Starts in','2h 10min'],['Capacity','~1 500 people'] ], btn:'Set Reminder' },
+      food:       { icon:'🍔', color:'#fb923c', bg:'#2a1e10', title:'Food Zone',    sub:'8 stalls · Vegetarian options', rows:[ ['Open','10:00 – 02:00'],['Stalls','8 open now'],['Wait time','~5 min'],['Accepts','Cash & Card'] ], btn:'See Menu' },
+      iceCream:   { icon:'🍦', color:'#ec4899', bg:'#2a1020', title:'Free Ice Cream', sub:'Sponsor activation · 30 min left', rows:[ ['Offer','Free scoop per person'],['Sponsor','Häagen-Dazs'],['Time left','30 minutes'],['Location','Booth #14'] ], btn:'Claim Offer' },
+      toilets:    { icon:'🚻', color:'#22d3ee', bg:'#10202a', title:'Toilets',       sub:'Zone C · Always open', rows:[ ['Cabins','24 total'],['Queue','Low wait'],['Accessible','✅ Yes'],['Nearest','80m from you'] ], btn:'Navigate Here' },
+      boardGames: { icon:'🎲', color:'#a855f7', bg:'#1e1e2a', title:'Board Games',  sub:'Interactive fun zone', rows:[ ['Wait','~15 min'],['Games','Catan, Chess, UNO…'],['Free entry','✅ Yes'],['Age','All ages'] ], btn:'Join Queue' },
+      firstAid:   { icon:'⚕️', color:'#f87171', bg:'#2a1010', title:'First Aid',    sub:'24/7 medical staff on site', rows:[ ['Staff','4 paramedics'],['Open','24 hours'],['Emergency','Call 112'],['AED','Available'] ], btn:'Get Directions' },
+      merch:      { icon:'👕', color:'#818cf8', bg:'#1a1a30', title:'Merch Stand',  sub:'Official festival store', rows:[ ['Open','11:00 – 23:00'],['Accepts','Card preferred'],['Stock','T-shirts, Hats, Tote bags'],['Queue','Low'] ], btn:'See Products' },
+      arPortal:   { icon:'🌀', color:'#ec4899', bg:'#1a102a', title:'AR Portal',    sub:'Mixed reality experience', rows:[ ['Status','🟢 Active'],['Devices','AR Glasses required'],['Duration','~8 min per session'],['Unlocks','Exclusive badge'] ], btn:'Launch AR' },
+    };
+    const PEOPLE = {
+      maria:  { initial:'M', grad:'linear-gradient(135deg,#a855f7,#ec4899)', name:'Maria Ionescu',  handle:'@maria.i',   dist:'120m', loc:'Near Main Stage', status:'🟢 Online', bio:'Loves techno & free food 🎶🍕', mutual:'You, Ionuț', btn:'Send Message' },
+      ionut:  { initial:'I', grad:'linear-gradient(135deg,#0ea5e9,#22d3ee)', name:'Ionuț Radu',    handle:'@ionutz.r',  dist:'80m',  loc:'Food Zone',       status:'🟢 Online', bio:'Festival addict. Board games champion. 🎲', mutual:'You, Maria, Laura', btn:'Send Message' },
+      andrei: { initial:'A', grad:'linear-gradient(135deg,#4ade80,#22d3ee)', name:'Andrei Mihai',  handle:'@andrei.m',  dist:'200m', loc:'Board Games',     status:'🟢 Online', bio:'Here for the vibes 🤙', mutual:'You, Ionuț', btn:'Send Message' },
+      laura:  { initial:'L', grad:'linear-gradient(135deg,#facc15,#fb923c)', name:'Laura Constantin', handle:'@laura.c', dist:'310m', loc:'Stage 2',        status:'🟢 Online', bio:'Stage 2 fan. Always first row. 🎸', mutual:'You, Maria', btn:'Send Message' },
+    };
+
+    // ── pan state ──
+    let panX = -50, panY = -160;
+    let dragging = false, startX, startY, startPanX, startPanY;
+    let lastDX = 0, lastDY = 0;
+    let compassAngle = 0, compassTarget = 0;
+    let hintHidden = false;
+
+    const container = document.getElementById('mapContainer');
+    const inner     = document.getElementById('mapInner');
+    const needle    = document.getElementById('compassNeedle');
+    const hint      = document.getElementById('mapDragHint');
+    const detail    = document.getElementById('mapDetail');
+    const detailHdr = document.getElementById('mapDetailHeader');
+    const detailBod = document.getElementById('mapDetailBody');
+    const detailBtn = document.getElementById('mapDetailBtn');
+
+    function applyPan(x, y) {
+      // clamp so map never fully leaves viewport
+      // container visible roughly 340×430, inner 680×920
+      const maxX = 0, minX = -(680 - 340);
+      const maxY = 0, minY = -(920 - 430);
+      panX = Math.min(maxX, Math.max(minX, x));
+      panY = Math.min(maxY, Math.max(minY, y));
+      inner.style.transform = `translate(${panX}px,${panY}px)`;
+    }
+
+    // init position
+    applyPan(panX, panY);
+
+    // pointer events for panning
+    container.addEventListener('pointerdown', e => {
+      if (e.target.closest('.map-detail')) return;
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      startPanX = panX;   startPanY = panY;
+      container.setPointerCapture(e.pointerId);
+      if (!hintHidden) { hint.style.opacity = '0'; hintHidden = true; }
+    });
+    container.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      lastDX = dx; lastDY = dy;
+      applyPan(startPanX + dx, startPanY + dy);
+      // rotate compass based on pan direction
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+        compassTarget = Math.atan2(dx, dy) * (180 / Math.PI) * 0.3;
+        compassAngle += (compassTarget - compassAngle) * 0.15;
+        needle.style.transform = `rotate(${-compassAngle}deg)`;
+        needle.style.transformOrigin = '26px 26px';
+      }
+    });
+    container.addEventListener('pointerup', () => {
+      dragging = false;
+      // spring compass back toward 0
+      let frames = 0;
+      const ease = () => {
+        compassAngle *= 0.88;
+        needle.style.transform = `rotate(${-compassAngle}deg)`;
+        if (Math.abs(compassAngle) > 0.3 && frames++ < 60) requestAnimationFrame(ease);
+        else { compassAngle = 0; needle.style.transform = 'rotate(0deg)'; }
+      };
+      requestAnimationFrame(ease);
+    });
+
+    // recenter on YOU
+    window.mapRecenter = function() {
+      // YOU is at SVG (340,660). Center in container (170,215)
+      const tx = -(340 - 170);
+      const ty = -(660 - 215);
+      inner.style.transition = 'transform .4s cubic-bezier(.32,0,.15,1)';
+      applyPan(tx, ty);
+      setTimeout(() => inner.style.transition = '', 420);
+      toast('📍 Centered on you');
+    };
+
+    // ── detail sheet ──
+    function openDetail(headerHTML, bodyHTML, btnLabel, btnAction) {
+      detailHdr.innerHTML = headerHTML;
+      detailBod.innerHTML = bodyHTML;
+      detailBtn.textContent = btnLabel;
+      detailBtn.onclick = () => { toast(btnAction); };
+      detail.classList.add('open');
+      // close button inside header
+      const closeBtn = detailHdr.querySelector('.map-detail-close');
+      if (closeBtn) closeBtn.onclick = () => detail.classList.remove('open');
+    }
+
+    window.showZone = function(id) {
+      const z = ZONES[id]; if (!z) return;
+      const hdr = `
+        <div class="map-detail-icon" style="background:${z.bg};font-size:26px">${z.icon}</div>
+        <div>
+          <div class="map-detail-title" style="color:${z.color}">${z.title}</div>
+          <div class="map-detail-sub">${z.sub}</div>
+        </div>
+        <div class="map-detail-close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`;
+      const body = z.rows.map(r =>
+        `<div class="map-detail-row"><span class="dr-label">${r[0]}</span><span class="dr-val">${r[1]}</span></div>`
+      ).join('');
+      openDetail(hdr, body, z.btn, `✅ ${z.btn}`);
+    };
+
+    window.showPerson = function(id) {
+      const p = PEOPLE[id]; if (!p) return;
+      const hdr = `
+        <div class="person-card-avatar" style="background:${p.grad}">${p.initial}</div>
+        <div class="person-card-info">
+          <div class="pc-name">${p.name}</div>
+          <div class="pc-handle">${p.handle}</div>
+          <div class="pc-status">${p.status} · ${p.dist}</div>
+        </div>
+        <div class="map-detail-close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`;
+      const body = `
+        <div class="map-detail-row"><span class="dr-label">Location</span><span class="dr-val">📍 ${p.loc}</span></div>
+        <div class="map-detail-row"><span class="dr-label">Bio</span><span class="dr-val">${p.bio}</span></div>
+        <div class="map-detail-row"><span class="dr-label">Mutual friends</span><span class="dr-val">${p.mutual}</span></div>`;
+      openDetail(hdr, body, p.btn, `💬 Message sent to ${p.name}!`);
+    };
+
+  })();
+
+  // ─── scale phone to viewport ─────────────────────────
+  function scalePhone() {
+    const wrap = document.querySelector('.phone-scale-wrap');
+    const phoneH = 812 + 50; // phone height + label
+    const phoneW = 375;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scaleH = (vh - 20) / phoneH;
+    const scaleW = (vw - 40) / phoneW;
+    const scale = Math.min(scaleH, scaleW, 1);
+    wrap.style.transform = `scale(${scale})`;
+  }
+  scalePhone();
+  window.addEventListener('resize', scalePhone);
+</script>
+</body>
+</html>
