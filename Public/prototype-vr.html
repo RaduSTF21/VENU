@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VENU – AR Glasses Prototype</title>
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #050510;
+      --surface:   #0e0e22;
+      --card:      rgba(255,255,255,0.06);
+      --card-hi:   rgba(255,255,255,0.10);
+      --border:    rgba(255,255,255,0.10);
+      --purple:    #a855f7;
+      --purple-d:  #7c3aed;
+      --pink:      #ec4899;
+      --cyan:      #22d3ee;
+      --yellow:    #facc15;
+      --green:     #4ade80;
+      --red:       #f87171;
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+
+      /* visor dimensions */
+      --visor-w:   860px;
+      --visor-h:   430px;
+    }
+
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      padding: 16px;
+    }
+
+    /* ambient blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 560px; height: 560px;
+      background: rgba(168,85,247,.22);
+      top: -180px; left: -180px;
+    }
+    body::after {
+      width: 560px; height: 560px;
+      background: rgba(34,211,238,.16);
+      bottom: -180px; right: -180px;
+    }
+
+    /* ─── STAGE WRAPPER ────────────────────────────────── */
+    .stage {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .stage-label {
+      font-size: 11px;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ─── HEADSET SHELL ────────────────────────────────── */
+    .headset-scale-wrap { transform-origin: top center; }
+
+    .headset {
+      position: relative;
+      width: calc(var(--visor-w) + 80px);
+      height: calc(var(--visor-h) + 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* outer headset chassis - VR glasses silhouette */
+    .headset-frame {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, #1a1a2e 0%, #0a0a1a 100%);
+      border-radius: 60px / 50%;
+      border: 2px solid rgba(255,255,255,.08);
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,.06),
+        inset 0 -4px 12px rgba(0,0,0,.6),
+        0 30px 70px rgba(0,0,0,.7),
+        0 0 0 6px #07071a,
+        0 0 0 8px rgba(168,85,247,.18);
+    }
+
+    /* nose bridge cutout */
+    .headset-frame::before {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90px;
+      height: 50px;
+      background: var(--bg);
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      border-top: 2px solid rgba(255,255,255,.08);
+    }
+
+    /* head straps */
+    .strap {
+      position: absolute;
+      top: 50%;
+      width: 70px;
+      height: 18px;
+      background: linear-gradient(180deg, #2a2a44 0%, #1a1a2e 100%);
+      transform: translateY(-50%);
+      border: 1.5px solid rgba(255,255,255,.08);
+    }
+    .strap.left  { left: -64px;  border-radius: 4px 0 0 4px; box-shadow: inset -4px 0 8px rgba(0,0,0,.5); }
+    .strap.right { right: -64px; border-radius: 0 4px 4px 0; box-shadow: inset  4px 0 8px rgba(0,0,0,.5); }
+    .strap::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--purple);
+      box-shadow: 0 0 12px var(--purple);
+      transform: translateY(-50%);
+      animation: blink 1.6s ease-in-out infinite;
+    }
+    .strap.left::after  { right: 8px; }
+    .strap.right::after { left: 8px; }
+
+    /* small camera/sensor dots on the front */
+    .sensor {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #050510;
+      border: 1.5px solid rgba(255,255,255,.18);
+      box-shadow: inset 0 0 4px rgba(0,0,0,.8);
+      z-index: 5;
+    }
+    .sensor.s1 { top: 22px; left: 80px; }
+    .sensor.s2 { top: 22px; right: 80px; }
+    .sensor.s3 { top: 22px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; background: radial-gradient(circle at 30% 30%, #4a4a6e, #050510); }
+    .sensor.s4 { bottom: 26px; left: 130px; width: 6px; height: 6px; background: var(--green); box-shadow: 0 0 8px var(--green); animation: blink 2s infinite; }
+    .sensor.s5 { bottom: 26px; right: 130px; width: 6px; height: 6px; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: blink 2.4s infinite; }
+
+    /* ─── VISOR (the big lens area) ────────────────────── */
+    .visor {
+      position: relative;
+      width: var(--visor-w);
+      height: var(--visor-h);
+      border-radius: 200px / 50%;
+      background: #000;
+      overflow: hidden;
+      box-shadow:
+        inset 0 0 0 3px #1a1a2e,
+        inset 0 0 0 5px rgba(168,85,247,.25),
+        inset 0 0 60px rgba(0,0,0,.9);
+      z-index: 4;
+    }
+
+    /* lens divider (subtle) - shows it's a stereo headset */
+    .visor::before {
+      content: '';
+      position: absolute;
+      top: 12%;
+      bottom: 12%;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,.04) 30%, rgba(255,255,255,.04) 70%, transparent);
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* lens vignette */
+    .visor::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 70% at 25% 50%, transparent 40%, rgba(0,0,0,.55) 95%),
+        radial-gradient(ellipse 60% 70% at 75% 50%, transparent 40%, rgba(0,0,0,.55) 95%);
+      pointer-events: none;
+      z-index: 60;
+    }
+
+    /* ─── SCREENS (HUD layers) ─────────────────────────── */
+    .hud-screens {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+    }
+    .hud {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease, transform .35s ease;
+      transform: scale(.96);
+    }
+    .hud.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: scale(1);
+    }
+
+    /* ─── FESTIVAL SCENE BACKGROUND (AR passthrough) ──── */
+    .scene {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(168,85,247,.35) 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 80%, rgba(236,72,153,.20) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(34,211,238,.18) 0%, transparent 50%),
+        linear-gradient(180deg, #0a0820 0%, #1a0a3a 35%, #2a0a4a 65%, #0a0820 100%);
+    }
+    .scene-svg { width: 100%; height: 100%; display: block; }
+
+    /* spotlights */
+    @keyframes spot {
+      0%,100% { opacity:.4; transform: rotate(-12deg); }
+      50%     { opacity:.9; transform: rotate(12deg); }
+    }
+    .spotlight {
+      position: absolute;
+      top: 0;
+      width: 4px;
+      height: 70%;
+      background: linear-gradient(180deg, rgba(255,255,255,.0) 0%, rgba(168,85,247,.4) 100%);
+      transform-origin: top center;
+      filter: blur(2px);
+      animation: spot 4s ease-in-out infinite;
+    }
+    .spotlight.l { left: 30%; }
+    .spotlight.c { left: 50%; animation-delay: 1.3s; }
+    .spotlight.r { left: 70%; animation-delay: 2.6s; }
+
+    /* ─── HUD OVERLAY: status bar ─────────────────────── */
+    .hud-statusbar {
+      position: absolute;
+      top: 12px; left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 14px;
+      background: rgba(8,8,20,.7);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      z-index: 70;
+      letter-spacing: .03em;
+    }
+    .hud-statusbar .pill-time { font-weight: 800; font-size: 12px; }
+    .hud-statusbar svg { width: 13px; height: 13px; vertical-align: middle; }
+    .hud-statusbar .sep { width: 1px; height: 12px; background: rgba(255,255,255,.15); }
+    .hud-batt { display: inline-flex; align-items: center; gap: 4px; }
+    .hud-batt-shell {
+      width: 22px; height: 10px;
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 2px;
+      position: relative;
+    }
+    .hud-batt-shell::after { content: ''; position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; background: rgba(255,255,255,.4); border-radius: 0 1px 1px 0; }
+    .hud-batt-fill { position: absolute; inset: 1.5px; background: var(--green); border-radius: 1px; }
+    .hud-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 1.5s infinite; }
+
+    /* ─── HUD: bottom dock ────────────────────────────── */
+    .hud-dock {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(8,8,20,.65);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 22px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      z-index: 70;
+    }
+    .dock-btn {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+    .dock-btn:hover { background: rgba(255,255,255,.10); transform: translateY(-2px); }
+    .dock-btn.active {
+      background: linear-gradient(135deg, var(--purple-d), var(--purple));
+      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(168,85,247,.5);
+    }
+    .dock-btn svg { width: 20px; height: 20px; fill: #fff; opacity: .9; }
+    .dock-btn .dock-badge {
+      position: absolute;
+      top: -3px; right: -3px;
+      min-width: 16px; height: 16px;
+      padding: 0 4px;
+      border-radius: 8px;
+      background: var(--pink);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #0a0a1a;
+    }
+
+    /* tooltip on hover */
+    .dock-btn::before {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      padding: 4px 8px;
+      background: rgba(0,0,0,.85);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .15s;
+      letter-spacing: .03em;
+    }
+    .dock-btn:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── Glassmorphic floating cards ─────────────────── */
+    .glass-card {
+      background: rgba(8,8,20,.72);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 32px rgba(0,0,0,.55);
+      color: var(--text);
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: BOOT                                        */
+    /* ─────────────────────────────────────────────────── */
+    #boot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 50% 50%, #2d0a5e 0%, #050510 80%);
+    }
+    .boot-logo {
+      width: 90px; height: 90px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      border-radius: 28px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 60px rgba(168,85,247,.7);
+      margin-bottom: 24px;
+      animation: pulse-logo 1.6s ease-in-out infinite;
+    }
+    .boot-logo svg { width: 50px; height: 50px; fill: #fff; }
+    @keyframes pulse-logo {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(168,85,247,.7); }
+      50%      { transform: scale(1.06); box-shadow: 0 0 90px rgba(236,72,153,.8); }
+    }
+    .boot-title {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      background: linear-gradient(135deg, #fff 0%, var(--purple) 60%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .boot-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .boot-progress {
+      margin-top: 36px;
+      width: 220px;
+      height: 3px;
+      background: rgba(255,255,255,.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .boot-progress::after {
+      content: '';
+      display: block;
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      animation: load 1.6s ease-in-out infinite;
+    }
+    @keyframes load {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(360%); }
+    }
+    .boot-step {
+      margin-top: 14px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .1em;
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: PAIR                                        */
+    /* ─────────────────────────────────────────────────── */
+    #pair {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 50% 50%, #1a0a3a 0%, #050510 80%);
+    }
+    .pair-illu {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      margin-bottom: 30px;
+    }
+    .pair-device {
+      width: 80px; height: 80px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #1a1a2e, #0a0a1a);
+      border: 1.5px solid rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    }
+    .pair-device svg { width: 40px; height: 40px; fill: var(--purple); }
+    .pair-device.glasses svg { fill: var(--cyan); }
+    .pair-link {
+      flex: 1;
+      width: 80px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      position: relative;
+      border-radius: 1px;
+    }
+    .pair-link::before, .pair-link::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      transform: translateY(-50%);
+      box-shadow: 0 0 12px var(--cyan);
+      animation: travel 1.6s linear infinite;
+    }
+    .pair-link::after { animation-delay: .8s; }
+    @keyframes travel {
+      0%   { left: 0; opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { left: 100%; opacity: 0; }
+    }
+    .pair-title {
+      font-size: 22px; font-weight: 800;
+      letter-spacing: -.02em;
+      text-align: center;
+    }
+    .pair-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+      text-align: center;
+      max-width: 380px;
+      line-height: 1.5;
+    }
+    .pair-code {
+      margin-top: 22px;
+      display: flex;
+      gap: 10px;
+    }
+    .pair-digit {
+      width: 44px; height: 56px;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid rgba(168,85,247,.4);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 800;
+      color: var(--purple);
+      box-shadow: 0 0 20px rgba(168,85,247,.2) inset;
+    }
+    .pair-btn {
+      margin-top: 28px;
+      padding: 13px 32px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--purple-d), var(--purple));
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(124,58,237,.4);
+      transition: all .2s;
+      letter-spacing: .02em;
+    }
+    .pair-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,58,237,.5); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: HUD HOME (overlay over festival scene)      */
+    /* ─────────────────────────────────────────────────── */
+    .hud-greeting {
+      position: absolute;
+      top: 60px; left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 30;
+    }
+    .hud-greeting .hg-time {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .hud-greeting .hg-event {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #fff 0%, var(--purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hud-greeting .hg-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* world-anchored AR labels (floating over scene) */
+    .ar-label {
+      position: absolute;
+      padding: 6px 12px;
+      background: rgba(8,8,20,.78);
+      border: 1px solid rgba(168,85,247,.5);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,.5);
+      z-index: 20;
+      animation: ar-float 4s ease-in-out infinite;
+    }
+    .ar-label::before {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 30px;
+      background: linear-gradient(180deg, rgba(168,85,247,.7), transparent);
+    }
+    .ar-label .al-icon { display: inline-block; margin-right: 4px; }
+    .ar-label .al-dist {
+      display: block;
+      font-size: 9px;
+      color: var(--cyan);
+      font-weight: 600;
+      margin-top: 1px;
+      letter-spacing: .04em;
+    }
+    @keyframes ar-float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-4px); }
+    }
+
+    /* friend marker in scene */
+    .ar-friend {
+      position: absolute;
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 8px 4px 4px;
+      background: rgba(34,211,238,.20);
+      border: 1.5px solid var(--cyan);
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+      font-size: 11px;
+      font-weight: 700;
+      z-index: 22;
+    }
+    .ar-friend-avatar {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800;
+      color: #fff;
+    }
+    .ar-friend::after {
+      content: '';
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 22px;
+      background: linear-gradient(180deg, var(--cyan), transparent);
+    }
+
+    /* quick mini-cards on sides */
+    .side-card {
+      position: absolute;
+      width: 200px;
+      padding: 12px 14px;
+      z-index: 30;
+    }
+    .side-card.left  { top: 90px; left: 60px; }
+    .side-card.right { top: 90px; right: 60px; }
+    .side-card .sc-title {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .side-card .sc-title svg { width: 12px; height: 12px; fill: var(--purple); }
+    .side-card .sc-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .side-card .sc-row:last-child { border-bottom: none; }
+    .side-card .sc-row .sc-icon {
+      width: 24px; height: 24px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .side-card .sc-row .sc-name { flex: 1; font-weight: 600; }
+    .side-card .sc-row .sc-meta { font-size: 10px; color: var(--muted); }
+    .side-card .sc-row .sc-time { font-size: 10px; font-weight: 800; color: var(--yellow); }
+    .side-card .sc-row .sc-time.soon { color: var(--red); animation: blink 1s infinite; }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: MAP / RADAR                                 */
+    /* ─────────────────────────────────────────────────── */
+    .radar-wrap {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px; height: 320px;
+      z-index: 30;
+    }
+    .radar-bg {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168,85,247,.10) 0%, rgba(8,8,20,.6) 70%);
+      border: 1.5px solid rgba(168,85,247,.4);
+      box-shadow: 0 0 40px rgba(168,85,247,.25), inset 0 0 60px rgba(168,85,247,.1);
+    }
+    .radar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px dashed rgba(168,85,247,.25);
+    }
+    .radar-ring.r1 { inset: 25%; }
+    .radar-ring.r2 { inset: 12%; }
+    .radar-cross-h, .radar-cross-v {
+      position: absolute;
+      background: rgba(168,85,247,.15);
+    }
+    .radar-cross-h { left: 0; right: 0; top: 50%; height: 1px; }
+    .radar-cross-v { top: 0; bottom: 0; left: 50%; width: 1px; }
+    .radar-sweep {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 0deg, rgba(168,85,247,.35) 30deg, transparent 60deg);
+      animation: sweep 4s linear infinite;
+    }
+    @keyframes sweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .radar-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--purple);
+      border: 2px solid #fff;
+      box-shadow: 0 0 16px var(--purple);
+      z-index: 5;
+    }
+    .radar-blip {
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      z-index: 4;
+      animation: blip-pulse 2s ease-in-out infinite;
+    }
+    .radar-blip::after {
+      content: attr(data-name);
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,.8);
+    }
+    @keyframes blip-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+      50%      { box-shadow: 0 0 0 8px transparent; }
+    }
+    .radar-info {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 18px;
+      font-size: 11px;
+      letter-spacing: .04em;
+      z-index: 30;
+      display: flex;
+      gap: 18px;
+    }
+    .radar-info-stat { text-align: center; }
+    .radar-info-stat .v { font-size: 18px; font-weight: 800; }
+    .radar-info-stat .l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 2px; }
+    .radar-info-divider { width: 1px; background: rgba(255,255,255,.1); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: AR NAVIGATION                               */
+    /* ─────────────────────────────────────────────────── */
+    .nav-target-card {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 320px;
+      padding: 14px 16px;
+      z-index: 35;
+    }
+    .nav-target-card .nt-row { display: flex; align-items: center; gap: 12px; }
+    .nav-target-card .nt-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800;
+    }
+    .nav-target-card .nt-name { font-size: 15px; font-weight: 800; }
+    .nav-target-card .nt-loc  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .nav-target-card .nt-eta  {
+      margin-left: auto;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+    .nav-target-card .nt-eta-lbl {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      text-align: right;
+    }
+
+    .nav-arrow-3d {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px; height: 200px;
+      z-index: 25;
+      animation: arrow-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes arrow-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 20px var(--purple)); }
+      50%      { transform: translate(-50%, -50%) scale(1.05); filter: drop-shadow(0 0 36px var(--pink)); }
+    }
+    .nav-distance-badge {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 18px;
+      background: rgba(168,85,247,.2);
+      border: 1.5px solid var(--purple);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      backdrop-filter: blur(8px);
+      z-index: 30;
+      letter-spacing: .04em;
+    }
+    .nav-distance-badge .nd-arrow {
+      display: inline-block;
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid var(--cyan);
+      margin-right: 6px;
+      transform: translateY(1px);
+    }
+
+    .nav-trail {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 24;
+    }
+    .nav-trail-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--purple);
+      opacity: .2;
+      animation: trail-flow 1.4s ease-in-out infinite;
+    }
+    .nav-trail-dot:nth-child(1) { animation-delay: 0s; }
+    .nav-trail-dot:nth-child(2) { animation-delay: .15s; }
+    .nav-trail-dot:nth-child(3) { animation-delay: .30s; }
+    .nav-trail-dot:nth-child(4) { animation-delay: .45s; }
+    .nav-trail-dot:nth-child(5) { animation-delay: .60s; }
+    @keyframes trail-flow {
+      0%, 100% { opacity: .2; transform: scale(.8); }
+      50%      { opacity: 1;  transform: scale(1.1); box-shadow: 0 0 12px var(--purple); }
+    }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: ACTIVITY ALERT                              */
+    /* ─────────────────────────────────────────────────── */
+    .activity-popup {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 380px;
+      padding: 0;
+      overflow: hidden;
+      z-index: 40;
+      animation: pop-in .5s cubic-bezier(.32,1.6,.45,1);
+    }
+    @keyframes pop-in {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(.7); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    .ap-banner {
+      padding: 8px 14px;
+      background: linear-gradient(90deg, var(--purple-d), var(--pink));
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ap-banner .live {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #fff;
+      animation: blink 1s infinite;
+    }
+    .ap-body { padding: 18px 20px; }
+    .ap-row { display: flex; gap: 14px; align-items: center; }
+    .ap-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      box-shadow: 0 8px 20px rgba(168,85,247,.4);
+    }
+    .ap-info { flex: 1; }
+    .ap-info .ap-title { font-size: 18px; font-weight: 800; }
+    .ap-info .ap-where { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .ap-countdown {
+      margin-top: 18px;
+      padding: 10px 14px;
+      background: rgba(248,113,113,.15);
+      border: 1px solid rgba(248,113,113,.3);
+      border-radius: 12px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px;
+    }
+    .ap-countdown .ap-cd-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--red);
+    }
+    .ap-countdown .ap-cd-lbl { font-weight: 600; }
+    .ap-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+    }
+    .ap-btn {
+      flex: 1;
+      padding: 11px;
+      border-radius: 12px;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .ap-btn.primary {
+      background: linear-gradient(135deg, var(--purple-d), var(--purple));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(124,58,237,.4);
+    }
+    .ap-btn.ghost {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--text);
+    }
+    .ap-btn:hover { transform: translateY(-1px); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: AR PORTAL                                   */
+    /* ─────────────────────────────────────────────────── */
+    .portal-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 280px; height: 280px;
+      z-index: 25;
+    }
+    .portal-ring::before, .portal-ring::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      background: conic-gradient(from 0deg, var(--purple), var(--pink), var(--cyan), var(--purple)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      animation: spin 6s linear infinite;
+    }
+    .portal-ring::after {
+      inset: 18px;
+      animation-direction: reverse;
+      animation-duration: 4s;
+      opacity: .6;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .portal-core {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 40%, rgba(236,72,153,.6) 0%, rgba(168,85,247,.4) 40%, rgba(34,211,238,.2) 80%, transparent 100%);
+      filter: blur(2px);
+      z-index: 24;
+      animation: portal-throb 3s ease-in-out infinite;
+    }
+    @keyframes portal-throb {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: .8; }
+      50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+    }
+    .portal-particles {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px; height: 320px;
+      z-index: 26;
+      pointer-events: none;
+    }
+    .portal-particle {
+      position: absolute;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px var(--cyan);
+      animation: orbit 4s linear infinite;
+    }
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateX(140px) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      to   { transform: rotate(360deg) translateX(140px) rotate(-360deg); opacity: 0; }
+    }
+    .portal-label {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 30;
+    }
+    .portal-label .pl-eyebrow {
+      font-size: 10px;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+    .portal-label .pl-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #fff, var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .portal-label .pl-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .portal-cta {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--purple-d), var(--pink));
+      border: none;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(236,72,153,.4);
+      z-index: 30;
+      letter-spacing: .04em;
+      transition: all .2s;
+    }
+    .portal-cta:hover { transform: translateX(-50%) translateY(-2px); box-shadow: 0 12px 32px rgba(236,72,153,.55); }
+
+    /* ─────────────────────────────────────────────────── */
+    /* SCREEN: SETTINGS / GESTURES                         */
+    /* ─────────────────────────────────────────────────── */
+    .settings-panel {
+      position: absolute;
+      top: 60px;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 460px;
+      padding: 18px 22px;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+    }
+    .settings-panel h2 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -.01em;
+    }
+    .settings-panel .sub {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .04em;
+    }
+    .set-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+    }
+    .set-row .sr-icon {
+      width: 32px; height: 32px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+    .set-row .sr-label { flex: 1; }
+    .set-row .sr-name { font-size: 13px; font-weight: 700; }
+    .set-row .sr-desc { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .set-row .sr-val  { font-size: 11px; color: var(--cyan); font-weight: 700; }
+
+    /* toggle (compact) */
+    .toggle-mini {
+      position: relative;
+      width: 38px; height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle-mini input { opacity: 0; width: 0; height: 0; }
+    .toggle-mini .tt {
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,.1);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-mini .tt::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: transform .2s;
+    }
+    .toggle-mini input:checked + .tt { background: var(--purple); }
+    .toggle-mini input:checked + .tt::after { transform: translateX(16px); }
+
+    /* gesture cue */
+    .gesture-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .gesture-chip {
+      flex: 1;
+      padding: 10px 8px;
+      text-align: center;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: .04em;
+    }
+    .gesture-chip .gc-emoji { display: block; font-size: 22px; margin-bottom: 4px; }
+
+    /* ─── TOAST ───────────────────────────────────────── */
+    .vr-toast {
+      position: absolute;
+      top: 56px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      padding: 10px 18px;
+      background: rgba(8,8,20,.92);
+      border: 1px solid rgba(168,85,247,.4);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+      z-index: 200;
+      white-space: nowrap;
+    }
+    .vr-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── HOST BAR (under the headset) ─────────────────── */
+    .host-bar {
+      margin-top: 8px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 14px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .04em;
+    }
+    .host-bar .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: blink 1.6s infinite;
+    }
+    .host-bar .sep { width: 1px; height: 12px; background: rgba(255,255,255,.1); }
+
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  </style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-label">VENU · AR Glasses Prototype</div>
+
+  <div class="headset-scale-wrap">
+    <div class="headset" id="headset">
+
+      <!-- Outer chassis -->
+      <div class="headset-frame"></div>
+
+      <!-- Sensors / cameras / LEDs -->
+      <div class="sensor s1"></div>
+      <div class="sensor s2"></div>
+      <div class="sensor s3"></div>
+      <div class="sensor s4"></div>
+      <div class="sensor s5"></div>
+
+      <!-- Side straps -->
+      <div class="strap left"></div>
+      <div class="strap right"></div>
+
+      <!-- ─── VISOR (lens viewport) ─── -->
+      <div class="visor">
+
+        <!-- Toast (lives at top of visor) -->
+        <div class="vr-toast" id="vrToast"></div>
+
+        <!-- Status bar (always visible during operational HUDs) -->
+        <div class="hud-statusbar" id="vrStatusBar" style="display:none">
+          <span class="hud-status-dot"></span>
+          <span class="pill-time" id="vrClock">21:45</span>
+          <span class="sep"></span>
+          <span>📡 Paired</span>
+          <span class="sep"></span>
+          <span>📍 GPS Lock</span>
+          <span class="sep"></span>
+          <span class="hud-batt">
+            <span class="hud-batt-shell"><span class="hud-batt-fill" style="width:78%"></span></span>
+            78%
+          </span>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 0 :: BOOT                                  -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud active" id="boot">
+          <div class="boot-logo">
+            <svg viewBox="0 0 24 24"><path d="M9 2L4 7v10l5 5h6l5-5V7l-5-5H9z"/><path d="M12 8v4l3 2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+          </div>
+          <div class="boot-title">VENU</div>
+          <div class="boot-sub">AR · Festival Companion</div>
+          <div class="boot-progress"></div>
+          <div class="boot-step" id="bootStep">Initializing optics…</div>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 1 :: PAIR WITH PHONE                       -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud" id="pair">
+          <div class="pair-illu">
+            <div class="pair-device">
+              <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18" stroke="#0a0a1a" stroke-width="2"/></svg>
+            </div>
+            <div class="pair-link"></div>
+            <div class="pair-device glasses">
+              <svg viewBox="0 0 24 24"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><line x1="10" y1="14" x2="14" y2="14" stroke="#0a0a1a" stroke-width="2"/><line x1="2" y1="10" x2="6" y2="10" stroke="currentColor" stroke-width="1.5"/><line x1="18" y1="10" x2="22" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+            </div>
+          </div>
+          <div class="pair-title">Pair with your phone</div>
+          <div class="pair-sub">Open VENU on your phone and enter the code below to sync your festival profile, friends, and saved schedule.</div>
+          <div class="pair-code">
+            <div class="pair-digit">8</div>
+            <div class="pair-digit">3</div>
+            <div class="pair-digit">2</div>
+            <div class="pair-digit">9</div>
+          </div>
+          <button class="pair-btn" onclick="vrGo('home'); vrToast('🔗 Paired with Alex&apos;s phone')">Continue without phone</button>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 2 :: HOME (overlay over festival scene)    -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud" id="home">
+
+          <!-- AR passthrough scene -->
+          <div class="scene">
+            <svg class="scene-svg" viewBox="0 0 860 430" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <!-- horizon ground -->
+              <rect x="0" y="280" width="860" height="150" fill="#0a0820"/>
+              <!-- distant stage -->
+              <rect x="280" y="190" width="300" height="100" fill="#1a0a3a" opacity=".9"/>
+              <rect x="290" y="170" width="280" height="22" fill="#2a0a4a"/>
+              <!-- stage truss -->
+              <line x1="290" y1="170" x2="290" y2="290" stroke="#3a1a5a" stroke-width="3"/>
+              <line x1="570" y1="170" x2="570" y2="290" stroke="#3a1a5a" stroke-width="3"/>
+              <!-- LED panels -->
+              <rect x="320" y="200" width="220" height="60" fill="url(#stageGrad)" opacity=".8"/>
+              <defs>
+                <linearGradient id="stageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#a855f7"/>
+                  <stop offset="100%" stop-color="#ec4899"/>
+                </linearGradient>
+                <radialGradient id="crowdGrad">
+                  <stop offset="0%" stop-color="#1a0a3a" stop-opacity=".8"/>
+                  <stop offset="100%" stop-color="#0a0820" stop-opacity="1"/>
+                </radialGradient>
+              </defs>
+              <!-- crowd silhouette -->
+              <ellipse cx="430" cy="340" rx="500" ry="60" fill="url(#crowdGrad)"/>
+              <!-- crowd heads (random circles) -->
+              <g fill="#0a0820" opacity=".9">
+                <circle cx="120" cy="320" r="8"/><circle cx="180" cy="325" r="9"/>
+                <circle cx="240" cy="318" r="8"/><circle cx="300" cy="330" r="10"/>
+                <circle cx="360" cy="322" r="9"/><circle cx="420" cy="328" r="10"/>
+                <circle cx="480" cy="320" r="8"/><circle cx="540" cy="326" r="10"/>
+                <circle cx="600" cy="318" r="9"/><circle cx="660" cy="330" r="10"/>
+                <circle cx="720" cy="322" r="9"/><circle cx="780" cy="328" r="8"/>
+                <circle cx="150" cy="350" r="11"/><circle cx="220" cy="358" r="12"/>
+                <circle cx="290" cy="352" r="11"/><circle cx="370" cy="360" r="13"/>
+                <circle cx="450" cy="354" r="12"/><circle cx="530" cy="362" r="13"/>
+                <circle cx="610" cy="356" r="12"/><circle cx="690" cy="360" r="11"/>
+              </g>
+              <!-- side trees / silhouettes -->
+              <polygon points="40,290 80,180 120,290" fill="#0a0820"/>
+              <polygon points="740,290 780,170 820,290" fill="#0a0820"/>
+              <!-- stars / particles -->
+              <g fill="#fff" opacity=".5">
+                <circle cx="80"  cy="40" r="1"/>
+                <circle cx="180" cy="80" r="1.2"/>
+                <circle cx="320" cy="50" r="1"/>
+                <circle cx="510" cy="70" r="1"/>
+                <circle cx="660" cy="40" r="1.5"/>
+                <circle cx="780" cy="90" r="1"/>
+                <circle cx="120" cy="120" r="1"/>
+                <circle cx="430" cy="100" r="1"/>
+                <circle cx="600" cy="130" r="1.3"/>
+              </g>
+            </svg>
+            <!-- moving spotlights -->
+            <div class="spotlight l"></div>
+            <div class="spotlight c"></div>
+            <div class="spotlight r"></div>
+          </div>
+
+          <!-- AR labels anchored over scene -->
+          <div class="ar-label" style="top:48%; left:50%; transform:translateX(-50%);">
+            <span class="al-icon">🎤</span>MAIN STAGE
+            <span class="al-dist">120m · Irina Rimes in 5 min</span>
+          </div>
+
+          <div class="ar-label" style="top:55%; left:14%;">
+            <span class="al-icon">🍔</span>FOOD ZONE
+            <span class="al-dist">60m · 8 stalls</span>
+          </div>
+
+          <div class="ar-label" style="top:55%; right:14%;">
+            <span class="al-icon">🍦</span>FREE ICE CREAM
+            <span class="al-dist">90m · 30 min left</span>
+          </div>
+
+          <!-- friend markers -->
+          <div class="ar-friend" style="top:70%; left:30%;" onclick="vrToast('💬 Maria · 120m')">
+            <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#a855f7,#ec4899)">M</div>
+            Maria · 120m
+          </div>
+          <div class="ar-friend" style="top:75%; left:60%;" onclick="vrToast('💬 Ionuț · 80m')">
+            <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)">I</div>
+            Ionuț · 80m
+          </div>
+
+          <!-- Greeting -->
+          <div class="hud-greeting">
+            <div class="hg-time">21:45 · Friday</div>
+            <div class="hg-event">Electric Castle 2026</div>
+            <div class="hg-sub">Banffy Castle · Cluj-Napoca · LIVE</div>
+          </div>
+
+          <!-- Side cards -->
+          <div class="side-card glass-card left">
+            <div class="sc-title">
+              <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Up Next
+            </div>
+            <div class="sc-row">
+              <div class="sc-icon" style="background:rgba(168,85,247,.25)">🎤</div>
+              <div class="sc-name">Irina Rimes<div class="sc-meta">Main Stage</div></div>
+              <div class="sc-time soon">5m</div>
+            </div>
+            <div class="sc-row">
+              <div class="sc-icon" style="background:rgba(34,211,238,.25)">🎲</div>
+              <div class="sc-name">Board Games<div class="sc-meta">Fun Zone</div></div>
+              <div class="sc-time">15m</div>
+            </div>
+            <div class="sc-row">
+              <div class="sc-icon" style="background:rgba(74,222,128,.25)">🎸</div>
+              <div class="sc-name">INNA<div class="sc-meta">Stage 2</div></div>
+              <div class="sc-time">2h</div>
+            </div>
+          </div>
+
+          <div class="side-card glass-card right">
+            <div class="sc-title">
+              <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg>
+              Friends Online
+            </div>
+            <div class="sc-row">
+              <div class="sc-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899);font-weight:800">M</div>
+              <div class="sc-name">Maria<div class="sc-meta">Main Stage</div></div>
+              <div class="sc-meta">120m</div>
+            </div>
+            <div class="sc-row">
+              <div class="sc-icon" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee);font-weight:800">I</div>
+              <div class="sc-name">Ionuț<div class="sc-meta">Food Zone</div></div>
+              <div class="sc-meta">80m</div>
+            </div>
+            <div class="sc-row">
+              <div class="sc-icon" style="background:linear-gradient(135deg,#4ade80,#22d3ee);font-weight:800">A</div>
+              <div class="sc-name">Andrei<div class="sc-meta">Board Games</div></div>
+              <div class="sc-meta">200m</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 3 :: RADAR / MAP                           -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud" id="radar">
+          <div class="scene">
+            <svg class="scene-svg" viewBox="0 0 860 430" preserveAspectRatio="xMidYMid slice"><rect width="860" height="430" fill="url(#bgRadar)"/>
+              <defs>
+                <radialGradient id="bgRadar" cx="50%" cy="50%">
+                  <stop offset="0%" stop-color="#1a0a3a"/>
+                  <stop offset="100%" stop-color="#050510"/>
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+
+          <div class="hud-greeting">
+            <div class="hg-time">RADAR · 200m range</div>
+            <div class="hg-event">Festival Map</div>
+          </div>
+
+          <div class="radar-wrap">
+            <div class="radar-bg"></div>
+            <div class="radar-ring r1"></div>
+            <div class="radar-ring r2"></div>
+            <div class="radar-cross-h"></div>
+            <div class="radar-cross-v"></div>
+            <div class="radar-sweep"></div>
+            <div class="radar-center"></div>
+
+            <!-- friends -->
+            <div class="radar-blip" style="top:30%; left:62%; background:#22d3ee; color:#22d3ee" data-name="Maria"
+                 onclick="vrToast('📍 Maria · Main Stage · 120m')"></div>
+            <div class="radar-blip" style="top:62%; left:32%; background:#0ea5e9; color:#0ea5e9" data-name="Ionuț"
+                 onclick="vrToast('📍 Ionuț · Food Zone · 80m')"></div>
+            <div class="radar-blip" style="top:78%; left:70%; background:#4ade80; color:#4ade80" data-name="Andrei"
+                 onclick="vrToast('📍 Andrei · Board Games · 200m')"></div>
+            <div class="radar-blip" style="top:18%; left:78%; background:#facc15; color:#facc15" data-name="Laura"
+                 onclick="vrToast('📍 Laura · Stage 2 · 310m')"></div>
+            <!-- venues -->
+            <div class="radar-blip" style="top:25%; left:45%; background:#a855f7; color:#a855f7; width:10px; height:10px" data-name="Main Stage"
+                 onclick="vrToast('🎤 Main Stage · 120m')"></div>
+            <div class="radar-blip" style="top:50%; left:80%; background:#ec4899; color:#ec4899; width:10px; height:10px" data-name="🍦 Free"
+                 onclick="vrToast('🍦 Free Ice Cream · 30 min left')"></div>
+          </div>
+
+          <div class="radar-info glass-card">
+            <div class="radar-info-stat">
+              <div class="v" style="color:var(--cyan)">4</div>
+              <div class="l">Friends</div>
+            </div>
+            <div class="radar-info-divider"></div>
+            <div class="radar-info-stat">
+              <div class="v" style="color:var(--yellow)">5</div>
+              <div class="l">Activities</div>
+            </div>
+            <div class="radar-info-divider"></div>
+            <div class="radar-info-stat">
+              <div class="v" style="color:var(--green)">12</div>
+              <div class="l">Venues</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 4 :: AR NAVIGATION                         -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud" id="navigate">
+
+          <div class="scene">
+            <svg class="scene-svg" viewBox="0 0 860 430" preserveAspectRatio="xMidYMid slice">
+              <rect x="0" y="0" width="860" height="430" fill="#0a0820"/>
+              <!-- ground perspective grid -->
+              <g stroke="rgba(168,85,247,.20)" stroke-width="1" fill="none">
+                <line x1="430" y1="240" x2="-100" y2="430"/>
+                <line x1="430" y1="240" x2="200"  y2="430"/>
+                <line x1="430" y1="240" x2="430"  y2="430"/>
+                <line x1="430" y1="240" x2="660"  y2="430"/>
+                <line x1="430" y1="240" x2="960"  y2="430"/>
+                <line x1="0"   y1="280" x2="860"  y2="280"/>
+                <line x1="0"   y1="320" x2="860"  y2="320"/>
+                <line x1="0"   y1="370" x2="860"  y2="370"/>
+              </g>
+              <!-- distant landmark glow -->
+              <circle cx="430" cy="240" r="40" fill="url(#destGlow)" opacity=".7"/>
+              <defs>
+                <radialGradient id="destGlow">
+                  <stop offset="0%" stop-color="#ec4899"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+
+          <!-- target card -->
+          <div class="nav-target-card glass-card">
+            <div class="nt-row">
+              <div class="nt-avatar">M</div>
+              <div>
+                <div class="nt-name">Maria Ionescu</div>
+                <div class="nt-loc">📍 Near Main Stage</div>
+              </div>
+              <div>
+                <div class="nt-eta">2:30</div>
+                <div class="nt-eta-lbl">ETA</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D-style arrow pointing forward -->
+          <svg class="nav-arrow-3d" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ec4899"/>
+                <stop offset="100%" stop-color="#a855f7"/>
+              </linearGradient>
+            </defs>
+            <polygon points="100,20 160,120 120,120 120,180 80,180 80,120 40,120" fill="url(#arrowGrad)" stroke="#fff" stroke-width="2" opacity=".95"/>
+          </svg>
+
+          <!-- distance trail -->
+          <div class="nav-trail">
+            <div class="nav-trail-dot"></div>
+            <div class="nav-trail-dot"></div>
+            <div class="nav-trail-dot"></div>
+            <div class="nav-trail-dot"></div>
+            <div class="nav-trail-dot"></div>
+          </div>
+
+          <div class="nav-distance-badge">
+            <span class="nd-arrow"></span>120m forward
+          </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 5 :: ACTIVITY ALERT POPUP                  -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud" id="alert">
+          <div class="scene">
+            <svg class="scene-svg" viewBox="0 0 860 430" preserveAspectRatio="xMidYMid slice">
+              <rect width="860" height="430" fill="#0a0820"/>
+              <rect x="280" y="190" width="300" height="100" fill="#1a0a3a" opacity=".8"/>
+              <rect x="320" y="200" width="220" height="60" fill="url(#stageGrad2)" opacity=".7"/>
+              <defs>
+                <linearGradient id="stageGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#a855f7"/>
+                  <stop offset="100%" stop-color="#ec4899"/>
+                </linearGradient>
+              </defs>
+              <ellipse cx="430" cy="340" rx="500" ry="60" fill="#0a0820"/>
+              <g fill="#050510" opacity=".9">
+                <circle cx="120" cy="320" r="8"/><circle cx="240" cy="318" r="9"/>
+                <circle cx="360" cy="322" r="9"/><circle cx="480" cy="320" r="8"/>
+                <circle cx="600" cy="318" r="9"/><circle cx="720" cy="322" r="9"/>
+              </g>
+            </svg>
+            <div class="spotlight l"></div>
+            <div class="spotlight c"></div>
+            <div class="spotlight r"></div>
+          </div>
+
+          <div class="activity-popup glass-card">
+            <div class="ap-banner">
+              <span class="live"></span>
+              Activity Starting Soon
+            </div>
+            <div class="ap-body">
+              <div class="ap-row">
+                <div class="ap-icon">🎤</div>
+                <div class="ap-info">
+                  <div class="ap-title">Irina Rimes</div>
+                  <div class="ap-where">📍 Main Stage · 120m away</div>
+                </div>
+              </div>
+              <div class="ap-countdown">
+                <div class="ap-cd-num">5:00</div>
+                <div class="ap-cd-lbl">Starts in · Don't miss it!</div>
+              </div>
+              <div class="ap-actions">
+                <button class="ap-btn primary" onclick="vrGo('navigate'); vrToast('🧭 Navigation started')">Navigate</button>
+                <button class="ap-btn ghost" onclick="vrToast('⏰ Reminder set')">Remind Me</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 6 :: AR PORTAL HUNT                        -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud" id="portal">
+          <div class="scene">
+            <svg class="scene-svg" viewBox="0 0 860 430" preserveAspectRatio="xMidYMid slice">
+              <rect width="860" height="430" fill="#050510"/>
+              <g fill="#fff" opacity=".4">
+                <circle cx="60"  cy="50"  r="1"/>
+                <circle cx="180" cy="100" r="1.4"/>
+                <circle cx="280" cy="40"  r="1"/>
+                <circle cx="380" cy="90"  r="1.2"/>
+                <circle cx="500" cy="50"  r="1"/>
+                <circle cx="620" cy="80"  r="1.5"/>
+                <circle cx="740" cy="40"  r="1"/>
+                <circle cx="800" cy="120" r="1.3"/>
+                <circle cx="100" cy="180" r="1"/>
+                <circle cx="430" cy="380" r="1"/>
+                <circle cx="700" cy="350" r="1.2"/>
+              </g>
+            </svg>
+          </div>
+
+          <div class="portal-label">
+            <div class="pl-eyebrow">AR Portal Hunt</div>
+            <div class="pl-title">Portal #3 Found</div>
+            <div class="pl-sub">Step closer to enter the dimension</div>
+          </div>
+
+          <div class="portal-particles">
+            <div class="portal-particle" style="animation-delay: 0s"></div>
+            <div class="portal-particle" style="animation-delay: -.5s"></div>
+            <div class="portal-particle" style="animation-delay: -1s"></div>
+            <div class="portal-particle" style="animation-delay: -1.5s"></div>
+            <div class="portal-particle" style="animation-delay: -2s"></div>
+            <div class="portal-particle" style="animation-delay: -2.5s"></div>
+            <div class="portal-particle" style="animation-delay: -3s"></div>
+            <div class="portal-particle" style="animation-delay: -3.5s"></div>
+          </div>
+          <div class="portal-core"></div>
+          <div class="portal-ring"></div>
+
+          <button class="portal-cta" onclick="vrToast('🌀 Entering portal…')">Enter Portal</button>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- HUD 7 :: SETTINGS / GESTURES                   -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud" id="settings">
+          <div class="scene">
+            <svg class="scene-svg" viewBox="0 0 860 430" preserveAspectRatio="xMidYMid slice">
+              <rect width="860" height="430" fill="url(#bgSet)"/>
+              <defs>
+                <radialGradient id="bgSet" cx="50%" cy="50%">
+                  <stop offset="0%" stop-color="#1a0a3a"/>
+                  <stop offset="100%" stop-color="#050510"/>
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+
+          <div class="settings-panel glass-card">
+            <div>
+              <h2>Glasses Settings</h2>
+              <div class="sub">Tap with pinch gesture or say "VENU" to navigate</div>
+            </div>
+
+            <div class="set-row">
+              <div class="sr-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">📍</div>
+              <div class="sr-label">
+                <div class="sr-name">Share Location</div>
+                <div class="sr-desc">Friends can see you on map</div>
+              </div>
+              <label class="toggle-mini"><input type="checkbox" checked onchange="vrToast('Location: ' + (this.checked?'ON':'OFF'))"/><span class="tt"></span></label>
+            </div>
+
+            <div class="set-row">
+              <div class="sr-icon" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)">🔔</div>
+              <div class="sr-label">
+                <div class="sr-name">AR Notifications</div>
+                <div class="sr-desc">Floating alerts in your view</div>
+              </div>
+              <label class="toggle-mini"><input type="checkbox" checked onchange="vrToast('Alerts: ' + (this.checked?'ON':'OFF'))"/><span class="tt"></span></label>
+            </div>
+
+            <div class="set-row">
+              <div class="sr-icon" style="background:linear-gradient(135deg,#facc15,#f97316)">👁️</div>
+              <div class="sr-label">
+                <div class="sr-name">Eye Tracking</div>
+                <div class="sr-desc">Focus to select targets</div>
+              </div>
+              <label class="toggle-mini"><input type="checkbox" checked onchange="vrToast('Eye tracking: ' + (this.checked?'ON':'OFF'))"/><span class="tt"></span></label>
+            </div>
+
+            <div class="set-row">
+              <div class="sr-icon" style="background:linear-gradient(135deg,#4ade80,#22d3ee)">📱</div>
+              <div class="sr-label">
+                <div class="sr-name">Phone Connection</div>
+                <div class="sr-desc">Alex's iPhone · last sync 2s</div>
+              </div>
+              <div class="sr-val">CONNECTED</div>
+            </div>
+
+            <div style="font-size:11px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-top:4px;">Controls</div>
+
+            <div class="gesture-row">
+              <div class="gesture-chip"><span class="gc-emoji">👌</span>Pinch<br/>to select</div>
+              <div class="gesture-chip"><span class="gc-emoji">✋</span>Palm<br/>menu open</div>
+              <div class="gesture-chip"><span class="gc-emoji">🎙️</span>Voice<br/>"VENU…"</div>
+              <div class="gesture-chip"><span class="gc-emoji">👆</span>Tap<br/>side touchpad</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════════ -->
+        <!-- BOTTOM DOCK (visible on operational HUDs)      -->
+        <!-- ═════════════════════════════════════════════ -->
+        <div class="hud-dock" id="vrDock" style="display:none">
+          <div class="dock-btn" data-tip="Home" data-screen="home" onclick="vrGo('home')">
+            <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9v9a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2v-9z"/></svg>
+          </div>
+          <div class="dock-btn" data-tip="Map / Radar" data-screen="radar" onclick="vrGo('radar')">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="rgba(0,0,0,.4)"/></svg>
+          </div>
+          <div class="dock-btn" data-tip="Navigate" data-screen="navigate" onclick="vrGo('navigate')">
+            <svg viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+          <div class="dock-btn" data-tip="Alerts" data-screen="alert" onclick="vrGo('alert')">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="dock-badge">2</span>
+          </div>
+          <div class="dock-btn" data-tip="AR Portal" data-screen="portal" onclick="vrGo('portal')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5" fill="rgba(255,255,255,.3)"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <div class="dock-btn" data-tip="Settings" data-screen="settings" onclick="vrGo('settings')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+        </div>
+
+      </div><!-- /visor -->
+
+    </div><!-- /headset -->
+  </div><!-- /scale-wrap -->
+
+  <!-- Host bar under headset (status of pairing / device) -->
+  <div class="host-bar">
+    <span class="dot"></span>
+    <span>VENU AR v1.0</span>
+    <span class="sep"></span>
+    <span>Paired with Alex's iPhone</span>
+    <span class="sep"></span>
+    <span id="hostScreen">Boot</span>
+  </div>
+
+</div><!-- /stage -->
+
+<script>
+  // ─── clock ───────────────────────────────────────────
+  function updateVrClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const el = document.getElementById('vrClock');
+    if (el) el.textContent = h + ':' + m;
+  }
+  updateVrClock();
+  setInterval(updateVrClock, 10000);
+
+  // ─── navigation between HUD screens ───────────────────
+  let vrCurrent = 'boot';
+  const operationalScreens = ['home','radar','navigate','alert','portal','settings'];
+  const screenLabels = {
+    boot:'Boot', pair:'Pairing', home:'Home HUD', radar:'Map Radar',
+    navigate:'AR Navigation', alert:'Activity Alert', portal:'AR Portal', settings:'Settings'
+  };
+
+  function vrGo(id) {
+    const prev = document.getElementById(vrCurrent);
+    const next = document.getElementById(id);
+    if (!next || vrCurrent === id) return;
+    if (prev) prev.classList.remove('active');
+    next.classList.add('active');
+    vrCurrent = id;
+
+    // status bar + dock visible only on operational screens
+    const showChrome = operationalScreens.includes(id);
+    document.getElementById('vrStatusBar').style.display = showChrome ? 'flex' : 'none';
+    document.getElementById('vrDock').style.display      = showChrome ? 'flex' : 'none';
+
+    // dock active state
+    document.querySelectorAll('.dock-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.screen === id);
+    });
+
+    // host bar
+    document.getElementById('hostScreen').textContent = screenLabels[id] || id;
+  }
+
+  // ─── boot sequence ────────────────────────────────────
+  const bootSteps = [
+    'Initializing optics…',
+    'Calibrating IMU sensors…',
+    'Locking GPS signal…',
+    'Searching paired devices…',
+    'Loading festival map…',
+  ];
+  let bootIdx = 0;
+  const bootStepEl = document.getElementById('bootStep');
+  const bootInterval = setInterval(() => {
+    bootIdx++;
+    if (bootIdx < bootSteps.length) {
+      bootStepEl.textContent = bootSteps[bootIdx];
+    }
+  }, 600);
+  setTimeout(() => { clearInterval(bootInterval); vrGo('pair'); }, 2800);
+  setTimeout(() => { vrGo('home'); }, 5200);
+
+  // schedule a "live alert" demo a few seconds after home appears
+  setTimeout(() => {
+    if (vrCurrent === 'home') {
+      vrToast('🔔 Activity starting soon!');
+      setTimeout(() => { if (vrCurrent === 'home') vrGo('alert'); }, 1400);
+    }
+  }, 9500);
+
+  // ─── toast ───────────────────────────────────────────
+  let vrToastTimer;
+  function vrToast(msg) {
+    const el = document.getElementById('vrToast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(vrToastTimer);
+    vrToastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  // ─── keyboard shortcuts (debug) ───────────────────────
+  document.addEventListener('keydown', e => {
+    const map = { '1':'home', '2':'radar', '3':'navigate', '4':'alert', '5':'portal', '6':'settings', '0':'boot', '9':'pair' };
+    if (map[e.key]) vrGo(map[e.key]);
+  });
+
+  // ─── scale headset to viewport ───────────────────────
+  function scaleHeadset() {
+    const wrap = document.querySelector('.headset-scale-wrap');
+    const headsetW = 860 + 80 + 130; // visor + chassis + straps
+    const headsetH = 430 + 80 + 80;  // + chrome
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scaleW = (vw - 40) / headsetW;
+    const scaleH = (vh - 100) / headsetH;
+    const scale = Math.min(scaleW, scaleH, 1);
+    wrap.style.transform = `scale(${scale})`;
+  }
+  scaleHeadset();
+  window.addEventListener('resize', scaleHeadset);
+</script>
+</body>
+</html>
