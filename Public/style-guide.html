@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VENU – Ghid de stil</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080814;
+    --surface: #12122a;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.10);
+    --purple: #a855f7;
+    --purple-d: #7c3aed;
+    --pink: #ec4899;
+    --cyan: #22d3ee;
+    --yellow: #facc15;
+    --green: #4ade80;
+    --red: #f87171;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: ''; position: fixed; border-radius: 50%; filter: blur(140px); pointer-events: none; z-index: 0;
+  }
+  body::before { width: 500px; height: 500px; background: rgba(168,85,247,.18); top: -150px; left: -150px; }
+  body::after  { width: 500px; height: 500px; background: rgba(34,211,238,.12); bottom: -150px; right: -150px; }
+
+  .container { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .doc-header { text-align: center; margin-bottom: 56px; }
+  .doc-eyebrow { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .doc-title {
+    font-size: 48px; font-weight: 900; letter-spacing: -.03em;
+    background: linear-gradient(135deg, #fff, var(--purple) 60%, var(--pink) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .doc-sub { color: var(--muted); margin-top: 8px; font-size: 14px; max-width: 640px; margin-left: auto; margin-right: auto; }
+
+  .section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted); font-weight: 800;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title::before { content: ''; width: 24px; height: 2px; background: linear-gradient(90deg, var(--purple), var(--pink)); border-radius: 2px; }
+
+  /* ─── COLOR PALETTE ─── */
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .color-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .color-swatch {
+    height: 100px;
+    position: relative;
+    display: flex; align-items: flex-end;
+    padding: 12px;
+  }
+  .color-swatch span {
+    color: rgba(0,0,0,.6);
+    font-size: 11px; font-weight: 800;
+    background: rgba(255,255,255,.8);
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .color-info { padding: 12px 14px; }
+  .color-name { font-weight: 800; font-size: 14px; }
+  .color-hex { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'Courier New', monospace; letter-spacing: .04em; }
+  .color-usage { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+  /* ─── TYPOGRAPHY ─── */
+  .type-stack {
+    display: flex; flex-direction: column;
+    gap: 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+  }
+  .type-row { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .type-meta {
+    flex: 0 0 140px;
+    font-size: 11px; color: var(--muted);
+    letter-spacing: .04em;
+    font-family: 'Courier New', monospace;
+  }
+  .t-display { font-size: 42px; font-weight: 900; letter-spacing: -.03em; background: linear-gradient(135deg, #fff, var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .t-h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+  .t-h2 { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+  .t-h3 { font-size: 18px; font-weight: 700; }
+  .t-body { font-size: 14px; font-weight: 400; }
+  .t-small { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .t-mono { font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: .04em; color: var(--cyan); }
+
+  /* ─── ICONS ─── */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 12px;
+  }
+  .icon-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 12px 12px;
+    text-align: center;
+    transition: background .2s, border-color .2s;
+  }
+  .icon-card:hover { background: rgba(255,255,255,.08); border-color: rgba(168,85,247,.3); }
+  .icon-card svg { width: 28px; height: 28px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 8px; }
+  .icon-card .ic-name { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+  .icon-rules {
+    margin-top: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .icon-rules strong { color: var(--text); }
+  .icon-rules code {
+    background: rgba(168,85,247,.15);
+    color: var(--purple);
+    padding: 1px 6px; border-radius: 4px;
+    font-family: 'Courier New', monospace; font-size: 12px;
+  }
+
+  /* ─── COMPONENTS ─── */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .comp-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+  }
+  .comp-card h4 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 14px; }
+  .btn-primary {
+    padding: 12px 20px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--purple-d), var(--purple));
+    color: #fff;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(124,58,237,.35);
+  }
+  .btn-ghost {
+    padding: 12px 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    margin-right: 6px;
+  }
+  .badge-purple { background: rgba(168,85,247,.2); color: var(--purple); }
+  .badge-green  { background: rgba(74,222,128,.2);  color: var(--green); }
+  .badge-cyan   { background: rgba(34,211,238,.2);  color: var(--cyan); }
+  .badge-yellow { background: rgba(250,204,21,.2);  color: var(--yellow); }
+  .badge-pink   { background: rgba(236,72,153,.2);  color: var(--pink); }
+  .badge-red    { background: rgba(248,113,113,.2); color: var(--red); }
+
+  .input-demo {
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--text); font-size: 14px;
+    width: 100%;
+    outline: none;
+  }
+  .input-demo:focus { border-color: var(--purple); }
+
+  /* ─── SPACING ─── */
+  .spacing-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; font-size: 12px; }
+  .sp-box { background: linear-gradient(135deg, var(--purple), var(--pink)); height: 14px; border-radius: 4px; }
+  .sp-name { color: var(--muted); font-family: 'Courier New', monospace; flex: 0 0 100px; }
+
+  /* ─── RADII ─── */
+  .radii-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+  .radii-box {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 8px;
+    font-size: 11px; font-weight: 800; color: #fff;
+  }
+
+  /* ─── SHADOWS ─── */
+  .shadow-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px; }
+  .shadow-box {
+    width: 120px; height: 80px;
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 8px;
+    font-size: 10px; color: var(--muted);
+    font-family: 'Courier New', monospace;
+  }
+  .shadow-sm { box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+  .shadow-md { box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .shadow-lg { box-shadow: 0 24px 48px rgba(0,0,0,.55); }
+  .shadow-glow-p { box-shadow: 0 0 32px rgba(168,85,247,.45); }
+  .shadow-glow-c { box-shadow: 0 0 32px rgba(34,211,238,.4); }
+
+  .doc-footer { margin-top: 56px; text-align: center; color: var(--muted); font-size: 12px; }
+  .doc-footer a { color: var(--purple); text-decoration: none; font-weight: 600; }
+
+  @media print { body::before, body::after { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-eyebrow">VENU · Asistent de festival</div>
+    <h1 class="doc-title">Ghid de stil</h1>
+    <p class="doc-sub">Referința unică pentru limbajul vizual VENU pe prototipurile mobil, cască MR și smartwatch.</p>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">01 · Paletă de culori</div>
+    <div class="palette">
+      <div class="color-card">
+        <div class="color-swatch" style="background:#a855f7"><span>#a855f7</span></div>
+        <div class="color-info">
+          <div class="color-name">Mov</div>
+          <div class="color-hex">#a855f7 · --purple</div>
+          <div class="color-usage">Brand principal · acțiuni primare · gradienturi · stări active</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#7c3aed"><span>#7c3aed</span></div>
+        <div class="color-info">
+          <div class="color-name">Mov închis</div>
+          <div class="color-hex">#7c3aed · --purple-d</div>
+          <div class="color-usage">Bază gradient buton · umbră la hover</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#ec4899"><span>#ec4899</span></div>
+        <div class="color-info">
+          <div class="color-name">Roz</div>
+          <div class="color-hex">#ec4899 · --pink</div>
+          <div class="color-usage">Accent · portal AR · alerte · evidențieri</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#22d3ee"><span>#22d3ee</span></div>
+        <div class="color-info">
+          <div class="color-name">Cyan</div>
+          <div class="color-hex">#22d3ee · --cyan</div>
+          <div class="color-usage">Prieteni · social · ETA · etichete info</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#facc15"><span>#facc15</span></div>
+        <div class="color-info">
+          <div class="color-name">Galben</div>
+          <div class="color-hex">#facc15 · --yellow</div>
+          <div class="color-usage">Activități · cronometre · pulsații · oferte „gratis"</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#4ade80"><span>#4ade80</span></div>
+        <div class="color-info">
+          <div class="color-name">Verde</div>
+          <div class="color-hex">#4ade80 · --green</div>
+          <div class="color-usage">Status LIVE · locații · succes · baterie OK</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#f87171"><span>#f87171</span></div>
+        <div class="color-info">
+          <div class="color-name">Roșu</div>
+          <div class="color-hex">#f87171 · --red</div>
+          <div class="color-usage">Prim ajutor · countdown-uri urgente · acțiuni destructive</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#080814"><span style="background:#fff">#080814</span></div>
+        <div class="color-info">
+          <div class="color-name">Fundal</div>
+          <div class="color-hex">#080814 · --bg</div>
+          <div class="color-usage">Canvas aplicație · întuneric prietenos OLED</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#12122a"><span style="background:#fff">#12122a</span></div>
+        <div class="color-info">
+          <div class="color-name">Suprafață</div>
+          <div class="color-hex">#12122a · --surface</div>
+          <div class="color-usage">Carduri · câmpuri formular · elemente ridicate</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#f1f5f9"><span style="background:#000;color:#fff">#f1f5f9</span></div>
+        <div class="color-info">
+          <div class="color-name">Text</div>
+          <div class="color-hex">#f1f5f9 · --text</div>
+          <div class="color-usage">Text principal pe fundal întunecat</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#94a3b8"><span>#94a3b8</span></div>
+        <div class="color-info">
+          <div class="color-name">Atenuat</div>
+          <div class="color-hex">#94a3b8 · --muted</div>
+          <div class="color-usage">Text secundar · etichete · informații meta</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:linear-gradient(135deg,#a855f7,#ec4899)"><span>brand</span></div>
+        <div class="color-info">
+          <div class="color-name">Gradient brand</div>
+          <div class="color-hex">linear-gradient(135deg, #a855f7, #ec4899)</div>
+          <div class="color-usage">Logo-uri hero · butoane primare · marcă</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">02 · Tipografie</div>
+    <div class="type-stack">
+      <div class="type-row">
+        <div class="type-meta">Display · 42px · 900</div>
+        <div class="t-display">Electric Castle 2026</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">Titlu 1 · 28px · 800</div>
+        <div class="t-h1">Hartă festival</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">Titlu 2 · 22px · 800</div>
+        <div class="t-h2">Prieteni online</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">Titlu 3 · 18px · 700</div>
+        <div class="t-h3">Irina Rimes</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">Corp · 14px · 400</div>
+        <div class="t-body">Vulpile maro sar rapid peste câinele leneș. Conectează-te la contul tău VENU.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">Mic / atenuat · 12px</div>
+        <div class="t-small">Banffy Castle · Cluj-Napoca</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">Monospace · 12px</div>
+        <div class="t-mono">--purple: #a855f7;</div>
+      </div>
+    </div>
+    <div class="icon-rules" style="margin-top:16px">
+      <strong>Stivă fonturi:</strong> <code>'Segoe UI', system-ui, -apple-system, sans-serif</code><br>
+      <strong>De ce fonturi de sistem?</strong> Randare nativă pe orice platformă; fără FOUT, fără greutate în plus; performanță bună pe smartwatch și AR cu resurse limitate.<br>
+      <strong>Reguli letter-spacing:</strong> mai strâns pe titluri mari (<code>-.03em</code>), mai larg pe etichete MAJUSCULE (<code>.15em–.25em</code>).
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">03 · Iconografie</div>
+    <div class="icon-grid">
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9v9a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2v-9z"/></svg>
+        <div class="ic-name">Acasă</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="ic-name">Hartă / Pin</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div class="ic-name">Prieteni</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <div class="ic-name">Activitate</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="ic-name">Clopoțel</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="ic-name">Căutare</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.213.422.32.882.31 1.35L19.4 15z"/></svg>
+        <div class="ic-name">Setări</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        <div class="ic-name">Înapoi</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="ic-name">Înainte</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        <div class="ic-name">AR / Ochi</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <div class="ic-name">Muzică</div>
+      </div>
+      <div class="icon-card">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="ic-name">Chat</div>
+      </div>
+    </div>
+
+    <div class="icon-rules">
+      <strong>Stil:</strong> doar contur · stroke <code>2px</code> · linecap/join <code>round</code> · fill <code>none</code> · viewBox 24×24.<br>
+      <strong>Culori:</strong> moștenesc implicit <code>--text</code>; nuanțează cu culoarea contextului (mov primar, cyan prieteni etc.) când e accentuat.<br>
+      <strong>Variante pline:</strong> în tile-uri circulare mici cu icon alb pe fundal colorat (ex.: butoane doc, rânduri de activitate).<br>
+      <strong>Sursă:</strong> SVG inline — fără font de iconițe extern, zero request-uri rețea, recolorare completă prin CSS.
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">04 · Butoane și câmpuri</div>
+    <div class="comp-grid">
+      <div class="comp-card">
+        <h4>Acțiune primară</h4>
+        <button class="btn-primary">Autentificare</button>
+        <p style="font-size:12px;color:var(--muted); margin-top:12px">Gradient mov → mov închis. Umbră <code style="background:rgba(168,85,247,.15);color:var(--purple);padding:1px 6px;border-radius:4px;font-family:monospace">0 8px 24px rgba(124,58,237,.35)</code>. Raza 14px.</p>
+      </div>
+      <div class="comp-card">
+        <h4>Ghost / secundar</h4>
+        <button class="btn-ghost">Continuă cu dispozitiv AR</button>
+        <p style="font-size:12px;color:var(--muted); margin-top:12px">Bordură 1px var(--border), fundal var(--card). Pentru autentificări alternative, acțiuni de tip renunțare.</p>
+      </div>
+      <div class="comp-card">
+        <h4>Câmp text</h4>
+        <input class="input-demo" placeholder="tu@exemplu.ro" value="alex@email.com"/>
+        <p style="font-size:12px;color:var(--muted); margin-top:12px">Fundal suprafață, raza 14px. La focus, bordura devine <code style="background:rgba(168,85,247,.15);color:var(--purple);padding:1px 6px;border-radius:4px;font-family:monospace">--purple</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">05 · Badge-uri</div>
+    <div class="comp-card">
+      <span class="badge badge-purple">AR</span>
+      <span class="badge badge-pink">Muzică</span>
+      <span class="badge badge-green">LIVE</span>
+      <span class="badge badge-cyan">Prieten</span>
+      <span class="badge badge-yellow">Gratis</span>
+      <span class="badge badge-red">Urgent</span>
+      <p style="font-size:12px;color:var(--muted); margin-top:14px">Formă pastilă · 11px · greutate 700 · fundal nuanțat (alpha 20%) + foreground potrivit.</p>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">06 · Spațieri</div>
+    <div class="comp-card">
+      <div class="spacing-row"><span class="sp-name">--sp-1 · 4px</span><div class="sp-box" style="width:4px"></div></div>
+      <div class="spacing-row"><span class="sp-name">--sp-2 · 8px</span><div class="sp-box" style="width:8px"></div></div>
+      <div class="spacing-row"><span class="sp-name">--sp-3 · 12px</span><div class="sp-box" style="width:12px"></div></div>
+      <div class="spacing-row"><span class="sp-name">--sp-4 · 16px</span><div class="sp-box" style="width:16px"></div></div>
+      <div class="spacing-row"><span class="sp-name">--sp-5 · 24px</span><div class="sp-box" style="width:24px"></div></div>
+      <div class="spacing-row"><span class="sp-name">--sp-6 · 32px</span><div class="sp-box" style="width:32px"></div></div>
+      <div class="spacing-row"><span class="sp-name">--sp-7 · 48px</span><div class="sp-box" style="width:48px"></div></div>
+      <p style="font-size:12px;color:var(--muted); margin-top:14px">Scară în pași de 4px. Padding-urile cardurilor folosesc de obicei <strong style="color:var(--text)">16–24px</strong>; gap-uri între secțiuni <strong style="color:var(--text)">32–48px</strong>.</p>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">07 · Raze colț</div>
+    <div class="comp-card">
+      <div class="radii-row">
+        <div class="radii-box" style="border-radius:6px">6px</div>
+        <div class="radii-box" style="border-radius:12px">12px</div>
+        <div class="radii-box" style="border-radius:18px">18px</div>
+        <div class="radii-box" style="border-radius:24px">24px</div>
+        <div class="radii-box" style="border-radius:999px">pill</div>
+      </div>
+      <p style="font-size:12px;color:var(--muted); margin-top:14px">Chip-uri mici → 6/12px · Carduri → 18/20px · Ecrane telefon → 24/54px · Doc & toast-uri → pastilă.</p>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">08 · Umbre și glow</div>
+    <div class="comp-card">
+      <div class="shadow-row">
+        <div class="shadow-box shadow-sm">sm</div>
+        <div class="shadow-box shadow-md">md</div>
+        <div class="shadow-box shadow-lg">lg</div>
+        <div class="shadow-box shadow-glow-p">glow-p</div>
+        <div class="shadow-box shadow-glow-c">glow-c</div>
+      </div>
+      <p style="font-size:12px;color:var(--muted); margin-top:14px">Umbre stratificate cu glow-uri pe nuanța brandului (mov/cyan) ca UI-ul întunecat să rămână viu fără abuz de opacitate.</p>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    VENU Asistent de festival · Ghid de stil v1.0 · 2026 ·
+    <a href="../README.md">acasă proiect</a>
+  </div>
+
+</div>
+
+</body>
+</html>

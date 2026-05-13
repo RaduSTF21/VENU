@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VENU – Hărți de site</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080814; --surface: #12122a;
+    --card: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.10);
+    --purple: #a855f7; --purple-d: #7c3aed; --pink: #ec4899;
+    --cyan: #22d3ee; --yellow: #facc15; --green: #4ade80; --red: #f87171;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh; padding: 40px 24px 80px; line-height: 1.5;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: ''; position: fixed; border-radius: 50%; filter: blur(140px);
+    pointer-events: none; z-index: 0;
+  }
+  body::before { width: 500px; height: 500px; background: rgba(168,85,247,.18); top: -150px; left: -150px; }
+  body::after  { width: 500px; height: 500px; background: rgba(34,211,238,.12); bottom: -150px; right: -150px; }
+
+  .container { max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .doc-header { text-align: center; margin-bottom: 56px; }
+  .doc-eyebrow { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .doc-title {
+    font-size: 48px; font-weight: 900; letter-spacing: -.03em;
+    background: linear-gradient(135deg, #fff, var(--purple) 60%, var(--pink) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .doc-sub { color: var(--muted); margin-top: 8px; font-size: 14px; max-width: 720px; margin-left: auto; margin-right: auto; }
+
+  .sitemap-block { margin-bottom: 72px; }
+  .sitemap-head {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 28px;
+  }
+  .sitemap-num {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--purple-d), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+    box-shadow: 0 4px 16px rgba(124,58,237,.4);
+  }
+  .sitemap-meta { flex: 1; }
+  .sitemap-title { font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+  .sitemap-platform { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .sitemap-stat {
+    padding: 6px 14px;
+    background: rgba(34,211,238,.12);
+    border: 1px solid rgba(34,211,238,.3);
+    color: var(--cyan);
+    border-radius: 999px;
+    font-size: 11px; font-weight: 700;
+  }
+
+  .sitemap-canvas {
+    background: rgba(8,8,20,.6);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px;
+    overflow-x: auto;
+  }
+
+  /* ─── Tree layout ─── */
+  .tree {
+    display: flex; flex-direction: column;
+    align-items: center;
+    min-width: 100%;
+  }
+  .tree-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    padding: 18px 0;
+  }
+  .tree-row.children {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  /* connector lines drawn with pseudo-elements */
+  .tree-row::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 2px; height: 18px;
+    background: linear-gradient(180deg, transparent, var(--purple));
+  }
+  .tree-row:first-child::before { display: none; }
+
+  .node {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    min-width: 140px;
+    text-align: center;
+    transition: transform .15s, border-color .2s, background .2s;
+    position: relative;
+  }
+  .node:hover { transform: translateY(-2px); border-color: rgba(168,85,247,.5); }
+  .node-label { font-size: 13px; font-weight: 800; }
+  .node-meta { font-size: 10px; color: var(--muted); margin-top: 3px; letter-spacing: .04em; }
+  .node-icon {
+    display: inline-block;
+    margin-right: 4px;
+    font-size: 13px;
+  }
+  .node.root {
+    background: linear-gradient(135deg, var(--purple-d), var(--purple));
+    border-color: transparent;
+    min-width: 200px;
+    box-shadow: 0 8px 24px rgba(124,58,237,.4);
+  }
+  .node.root .node-label { color: #fff; font-size: 16px; }
+  .node.root .node-meta { color: rgba(255,255,255,.8); }
+  .node.section {
+    background: rgba(168,85,247,.10);
+    border-color: rgba(168,85,247,.35);
+    min-width: 160px;
+  }
+  .node.section .node-label { color: var(--purple); }
+  .node.feature { min-width: 150px; }
+  .node.leaf {
+    min-width: 130px;
+    background: rgba(255,255,255,.03);
+    border-style: dashed;
+  }
+  .node.leaf .node-label { font-size: 11px; color: var(--text); }
+  .node.leaf .node-meta { font-size: 9px; }
+
+  /* connector under each node going down */
+  .node-with-children {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .node-with-children .branch-vertical {
+    width: 2px; height: 22px;
+    background: linear-gradient(180deg, var(--purple), transparent);
+    margin: 0 auto;
+  }
+  .node-with-children .branch-children {
+    position: relative;
+    display: flex; gap: 10px;
+    padding-top: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .node-with-children .branch-children::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 14%; right: 14%;
+    height: 2px;
+    background: var(--purple);
+    opacity: .4;
+  }
+  .node-with-children .branch-children > .node-stem::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    width: 2px; height: 18px;
+    background: linear-gradient(180deg, transparent, var(--purple));
+    transform: translateX(-50%);
+  }
+  .node-stem { position: relative; }
+
+  .legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+  .legend-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .doc-footer { margin-top: 56px; text-align: center; color: var(--muted); font-size: 12px; }
+  .doc-footer a { color: var(--purple); text-decoration: none; font-weight: 600; }
+
+  @media print {
+    body::before, body::after { display: none; }
+    .sitemap-block { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-eyebrow">VENU · Asistent de festival</div>
+    <h1 class="doc-title">Hărți de site</h1>
+    <p class="doc-sub">Arbori ierarhici cu toate ecranele pe cele trei platforme VENU. Fiecare arbore pornește de la rădăcina dispozitivului și ramifică secțiunile principale și subecranele.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SITEMAP 1 :: MOBILE                                          -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="sitemap-block">
+    <div class="sitemap-head">
+      <div class="sitemap-num">01</div>
+      <div class="sitemap-meta">
+        <div class="sitemap-title">Sitemap aplicație mobilă</div>
+        <div class="sitemap-platform">iOS · Android · Dispozitiv principal</div>
+      </div>
+      <span class="sitemap-stat">9 ecrane nivel superior</span>
+    </div>
+
+    <div class="sitemap-canvas">
+      <div class="tree">
+        <!-- Root -->
+        <div class="tree-row">
+          <div class="node-with-children">
+            <div class="node root">
+              <div class="node-label">📱 VENU Mobile</div>
+              <div class="node-meta">intrare în aplicație</div>
+            </div>
+            <div class="branch-vertical"></div>
+
+            <!-- Sections -->
+            <div class="branch-children">
+              <!-- Splash -->
+              <div class="node-stem">
+                <div class="node section">
+                  <div class="node-label"><span class="node-icon">⚡</span>Ecran intro</div>
+                  <div class="node-meta">avansare automată 2,2s</div>
+                </div>
+              </div>
+
+              <!-- Auth -->
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">🔐</span>Cont</div>
+                    <div class="node-meta">2 ecrane</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Autentificare</div><div class="node-meta">email · parolă · SSO</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Înregistrare</div><div class="node-meta">nume · email · parolă</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Home -->
+              <div class="node-stem">
+                <div class="node section">
+                  <div class="node-label"><span class="node-icon">🏠</span>Acasă</div>
+                  <div class="node-meta">tablou de bord · 5 dale rapide</div>
+                </div>
+              </div>
+
+              <!-- Map -->
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">🗺️</span>Hartă</div>
+                    <div class="node-meta">hartă festival</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Pan / zoom</div><div class="node-meta">tragere · pinch</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Detaliu zonă</div><div class="node-meta">scenă · mâncare · WC…</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Detaliu persoană</div><div class="node-meta">card prieten</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Busolă</div><div class="node-meta">ajutor direcție</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Friends -->
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">👥</span>Prieteni</div>
+                    <div class="node-meta">listă + căutare</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Online</div><div class="node-meta">activ acum</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Offline</div><div class="node-meta">ultima dată văzut</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Adaugă prieten</div><div class="node-meta">flux cerere</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Activities -->
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">⚡</span>Activități</div>
+                    <div class="node-meta">program + filtru</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Toate</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Muzică</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Mâncare</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Jocuri</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Gratis</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">AR</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notifications -->
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">🔔</span>Notificări</div>
+                    <div class="node-meta">flux + preferințe</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Preferințe alerte</div><div class="node-meta">3 comutatoare</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Flux recent</div><div class="node-meta">citit / necitit</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Settings -->
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">⚙️</span>Setări</div>
+                    <div class="node-meta">profil · confidențialitate · dispozitive</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Profil</div><div class="node-meta">nume · email · telefon</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Confidențialitate</div><div class="node-meta">urmărire hartă · vizibilitate</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Dispozitive</div><div class="node-meta">AR · ceas</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Deconectare</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /branch-children -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-pill"><span class="dot" style="background:#7c3aed"></span>Rădăcină</span>
+      <span class="legend-pill"><span class="dot" style="background:#a855f7"></span>Secțiune</span>
+      <span class="legend-pill"><span class="dot" style="background:rgba(255,255,255,.4)"></span>Ecran frunză</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SITEMAP 2 :: MR HEADSET                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="sitemap-block">
+    <div class="sitemap-head">
+      <div class="sitemap-num">02</div>
+      <div class="sitemap-meta">
+        <div class="sitemap-title">Sitemap cască MR</div>
+        <div class="sitemap-platform">Ochelari AR · 8 straturi HUD · gest & voce</div>
+      </div>
+      <span class="sitemap-stat">8 ecrane HUD</span>
+    </div>
+
+    <div class="sitemap-canvas">
+      <div class="tree">
+        <div class="tree-row">
+          <div class="node-with-children">
+            <div class="node root">
+              <div class="node-label">👓 VENU AR</div>
+              <div class="node-meta">pornire</div>
+            </div>
+            <div class="branch-vertical"></div>
+
+            <div class="branch-children">
+              <div class="node-stem">
+                <div class="node section">
+                  <div class="node-label"><span class="node-icon">⚡</span>Pornire</div>
+                  <div class="node-meta">optică · IMU · GPS</div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">🔗</span>Împerechere</div>
+                    <div class="node-meta">sincron telefon</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Împerechere cod</div><div class="node-meta">4 cifre</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Sari</div><div class="node-meta">mod invitat</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">🌍</span>HUD Acasă</div>
+                    <div class="node-meta">scenă + etichete AR</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Trage să privești</div><div class="node-meta">simulare cap</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Etichete locație AR</div><div class="node-meta">7 ancorate</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Chip-uri prieteni</div><div class="node-meta">în lume</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Carduri laterale</div><div class="node-meta">Urmează + Prieteni</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Bandă direcție</div><div class="node-meta">busolă</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node section">
+                  <div class="node-label"><span class="node-icon">📡</span>Radar</div>
+                  <div class="node-meta">hartă baleiaj 200m</div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node section">
+                  <div class="node-label"><span class="node-icon">🧭</span>Navigație AR</div>
+                  <div class="node-meta">săgeată 3D + urmă</div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node section">
+                  <div class="node-label"><span class="node-icon">⚠️</span>Alertă activitate</div>
+                  <div class="node-meta">popup + numărătoare</div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node section">
+                  <div class="node-label"><span class="node-icon">🌀</span>AR Portal</div>
+                  <div class="node-meta">experiență sponsor</div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">⚙️</span>Setări</div>
+                    <div class="node-meta">gesturi · voce · ochi</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Trimite locația</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Alerte AR</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Urmărire ochi</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Gesturi</div><div class="node-meta">pinch · palmă · voce · tap</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-pill"><span class="dot" style="background:#7c3aed"></span>Pornire dispozitiv</span>
+      <span class="legend-pill"><span class="dot" style="background:#a855f7"></span>Strat HUD</span>
+      <span class="legend-pill"><span class="dot" style="background:rgba(255,255,255,.4)"></span>Sub-acțiune</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SITEMAP 3 :: SMARTWATCH                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="sitemap-block">
+    <div class="sitemap-head">
+      <div class="sitemap-num">03</div>
+      <div class="sitemap-meta">
+        <div class="sitemap-title">Sitemap smartwatch</div>
+        <div class="sitemap-platform">Wearable · pagini prin swipe · 5 pagini ceas</div>
+      </div>
+      <span class="sitemap-stat">5 pagini prin swipe</span>
+    </div>
+
+    <div class="sitemap-canvas">
+      <div class="tree">
+        <div class="tree-row">
+          <div class="node-with-children">
+            <div class="node root">
+              <div class="node-label">⌚ VENU Watch</div>
+              <div class="node-meta">trezire ridicare mâna</div>
+            </div>
+            <div class="branch-vertical"></div>
+
+            <div class="branch-children">
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">🔔</span>1 · Notificări</div>
+                    <div class="node-meta">pagină implicită</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Mesaj prieten</div><div class="node-meta">răspunsuri rapide</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Ping activitate</div><div class="node-meta">amintire / salvează</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Ofertă sponsor</div><div class="node-meta">revendică · sari</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">🧭</span>2 · Navigație</div>
+                    <div class="node-meta">săgeată + ETA</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Către prieten</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Către locație</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Anulează</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">⚡</span>3 · Acțiuni rapide</div>
+                    <div class="node-meta">acțiuni predefinite</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Distribuie locația</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">SOS</div><div class="node-meta">apăsare lungă coroană</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Găsește prieten</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Notă vocală</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">❤️</span>4 · Sănătate & activitate</div>
+                    <div class="node-meta">vitaluri · pași</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Puls</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Pași</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Hidratare</div><div class="node-meta">momente inteligente</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Rezumat zi</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="node-stem">
+                <div class="node-with-children">
+                  <div class="node section">
+                    <div class="node-label"><span class="node-icon">⚙️</span>5 · Setări</div>
+                    <div class="node-meta">preferințe pe ceas</div>
+                  </div>
+                  <div class="branch-vertical"></div>
+                  <div class="branch-children">
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Nu deranja</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Vibrație</div><div class="node-meta">model + intensitate</div></div></div>
+                    <div class="node-stem"><div class="node leaf"><div class="node-label">Sincron cu telefonul</div></div></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-pill"><span class="dot" style="background:#7c3aed"></span>Cadran ceas</span>
+      <span class="legend-pill"><span class="dot" style="background:#a855f7"></span>Pagină (swipe)</span>
+      <span class="legend-pill"><span class="dot" style="background:rgba(255,255,255,.4)"></span>Acțiune</span>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    VENU Asistent de festival · Hărți de site · 2026 ·
+    <a href="../README.md">acasă proiect</a>
+  </div>
+
+</div>
+
+</body>
+</html>

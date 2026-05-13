@@ -1218,6 +1218,124 @@
     .host-bar .sep { width: 1px; height: 12px; background: rgba(255,255,255,.1); }
 
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+    /* ─── PANNABLE WORLD (head-tracking sim) ──────────── */
+    .vr-world {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 2400px;
+      z-index: 1;
+      will-change: transform;
+      transform: translateX(-770px);
+    }
+    .vr-world.smooth { transition: transform .35s cubic-bezier(.22,.61,.36,1); }
+    .vr-world .scene {
+      width: 100%;
+      height: 100%;
+    }
+    /* enable drag cursor only while on home screen */
+    .visor.lookable { cursor: grab; }
+    .visor.lookable.dragging { cursor: grabbing; }
+
+    /* world-positioned AR labels override the centering animation
+       so they sit anchored to a specific px coordinate */
+    .vr-world .ar-label { animation: ar-float-y 4s ease-in-out infinite; }
+    @keyframes ar-float-y {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-4px); }
+    }
+
+    /* ─── HEADING STRIP (compass) ─────────────────────── */
+    .heading-strip {
+      position: absolute;
+      top: 46px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 260px;
+      height: 24px;
+      background: rgba(8,8,20,.72);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      z-index: 71;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,.4);
+    }
+    .heading-inner {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 0 130px;
+      white-space: nowrap;
+      transform: translateX(-50%);
+      will-change: transform;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      color: var(--muted);
+    }
+    .heading-inner span.dim { color: rgba(148,163,184,.45); font-weight: 500; }
+    .heading-inner span.north { color: var(--red); }
+    .heading-pointer {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, var(--purple), transparent);
+      box-shadow: 0 0 8px var(--purple);
+    }
+    .heading-pointer::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--purple);
+    }
+
+    /* ─── DRAG HINT ───────────────────────────────────── */
+    .drag-hint {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      padding: 6px 14px;
+      background: rgba(8,8,20,.7);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      backdrop-filter: blur(8px);
+      z-index: 70;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .4s, transform .4s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drag-hint.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .drag-hint .dh-icon {
+      display: inline-block;
+      animation: drag-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes drag-pulse {
+      0%, 100% { transform: translateX(-3px); opacity: .6; }
+      50%      { transform: translateX(3px);  opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -1305,94 +1423,248 @@
         <!-- ═════════════════════════════════════════════ -->
         <div class="hud" id="home">
 
-          <!-- AR passthrough scene -->
-          <div class="scene">
-            <svg class="scene-svg" viewBox="0 0 860 430" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-              <!-- horizon ground -->
-              <rect x="0" y="280" width="860" height="150" fill="#0a0820"/>
-              <!-- distant stage -->
-              <rect x="280" y="190" width="300" height="100" fill="#1a0a3a" opacity=".9"/>
-              <rect x="290" y="170" width="280" height="22" fill="#2a0a4a"/>
-              <!-- stage truss -->
-              <line x1="290" y1="170" x2="290" y2="290" stroke="#3a1a5a" stroke-width="3"/>
-              <line x1="570" y1="170" x2="570" y2="290" stroke="#3a1a5a" stroke-width="3"/>
-              <!-- LED panels -->
-              <rect x="320" y="200" width="220" height="60" fill="url(#stageGrad)" opacity=".8"/>
-              <defs>
-                <linearGradient id="stageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#a855f7"/>
-                  <stop offset="100%" stop-color="#ec4899"/>
-                </linearGradient>
-                <radialGradient id="crowdGrad">
-                  <stop offset="0%" stop-color="#1a0a3a" stop-opacity=".8"/>
-                  <stop offset="100%" stop-color="#0a0820" stop-opacity="1"/>
-                </radialGradient>
-              </defs>
-              <!-- crowd silhouette -->
-              <ellipse cx="430" cy="340" rx="500" ry="60" fill="url(#crowdGrad)"/>
-              <!-- crowd heads (random circles) -->
-              <g fill="#0a0820" opacity=".9">
-                <circle cx="120" cy="320" r="8"/><circle cx="180" cy="325" r="9"/>
-                <circle cx="240" cy="318" r="8"/><circle cx="300" cy="330" r="10"/>
-                <circle cx="360" cy="322" r="9"/><circle cx="420" cy="328" r="10"/>
-                <circle cx="480" cy="320" r="8"/><circle cx="540" cy="326" r="10"/>
-                <circle cx="600" cy="318" r="9"/><circle cx="660" cy="330" r="10"/>
-                <circle cx="720" cy="322" r="9"/><circle cx="780" cy="328" r="8"/>
-                <circle cx="150" cy="350" r="11"/><circle cx="220" cy="358" r="12"/>
-                <circle cx="290" cy="352" r="11"/><circle cx="370" cy="360" r="13"/>
-                <circle cx="450" cy="354" r="12"/><circle cx="530" cy="362" r="13"/>
-                <circle cx="610" cy="356" r="12"/><circle cx="690" cy="360" r="11"/>
-              </g>
-              <!-- side trees / silhouettes -->
-              <polygon points="40,290 80,180 120,290" fill="#0a0820"/>
-              <polygon points="740,290 780,170 820,290" fill="#0a0820"/>
-              <!-- stars / particles -->
-              <g fill="#fff" opacity=".5">
-                <circle cx="80"  cy="40" r="1"/>
-                <circle cx="180" cy="80" r="1.2"/>
-                <circle cx="320" cy="50" r="1"/>
-                <circle cx="510" cy="70" r="1"/>
-                <circle cx="660" cy="40" r="1.5"/>
-                <circle cx="780" cy="90" r="1"/>
-                <circle cx="120" cy="120" r="1"/>
-                <circle cx="430" cy="100" r="1"/>
-                <circle cx="600" cy="130" r="1.3"/>
-              </g>
-            </svg>
-            <!-- moving spotlights -->
-            <div class="spotlight l"></div>
-            <div class="spotlight c"></div>
-            <div class="spotlight r"></div>
+          <!-- ═══ PANNABLE WORLD (drag to look around) ═══ -->
+          <div class="vr-world" id="vrWorld">
+
+            <!-- AR passthrough scene (panorama 2400×430) -->
+            <div class="scene">
+              <svg class="scene-svg" viewBox="0 0 2400 430" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="bgGradHome" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%"  stop-color="#0a0820"/>
+                    <stop offset="35%" stop-color="#1a0a3a"/>
+                    <stop offset="65%" stop-color="#2a0a4a"/>
+                    <stop offset="100%" stop-color="#0a0820"/>
+                  </linearGradient>
+                  <linearGradient id="stageGradHome" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%"   stop-color="#a855f7"/>
+                    <stop offset="100%" stop-color="#ec4899"/>
+                  </linearGradient>
+                  <linearGradient id="stage2GradHome" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%"   stop-color="#22d3ee"/>
+                    <stop offset="100%" stop-color="#0ea5e9"/>
+                  </linearGradient>
+                  <radialGradient id="crowdGradHome">
+                    <stop offset="0%"   stop-color="#1a0a3a" stop-opacity=".9"/>
+                    <stop offset="100%" stop-color="#0a0820" stop-opacity="1"/>
+                  </radialGradient>
+                  <radialGradient id="portalGlowHome">
+                    <stop offset="0%"   stop-color="#ec4899" stop-opacity=".7"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                  </radialGradient>
+                  <radialGradient id="moonGlow">
+                    <stop offset="0%"   stop-color="#fff" stop-opacity=".5"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                  </radialGradient>
+                </defs>
+
+                <!-- sky -->
+                <rect width="2400" height="430" fill="url(#bgGradHome)"/>
+
+                <!-- moon -->
+                <circle cx="620" cy="80"  r="50" fill="url(#moonGlow)"/>
+                <circle cx="620" cy="80"  r="20" fill="#fff" opacity=".85"/>
+
+                <!-- stars -->
+                <g fill="#fff">
+                  <circle cx="80"   cy="40"  r="1"   opacity=".5"/>
+                  <circle cx="180"  cy="80"  r="1.2" opacity=".7"/>
+                  <circle cx="320"  cy="50"  r="1"   opacity=".5"/>
+                  <circle cx="450"  cy="100" r="1.5" opacity=".8"/>
+                  <circle cx="780"  cy="40"  r="1"   opacity=".5"/>
+                  <circle cx="900"  cy="90"  r="1.3" opacity=".7"/>
+                  <circle cx="1100" cy="60"  r="1"   opacity=".6"/>
+                  <circle cx="1300" cy="100" r="1.2" opacity=".7"/>
+                  <circle cx="1500" cy="40"  r="1"   opacity=".5"/>
+                  <circle cx="1700" cy="80"  r="1.4" opacity=".8"/>
+                  <circle cx="1900" cy="50"  r="1"   opacity=".5"/>
+                  <circle cx="2100" cy="100" r="1.3" opacity=".7"/>
+                  <circle cx="2300" cy="60"  r="1"   opacity=".6"/>
+                  <circle cx="120"  cy="120" r="1"   opacity=".5"/>
+                  <circle cx="800"  cy="140" r="1"   opacity=".4"/>
+                  <circle cx="1450" cy="110" r="1"   opacity=".5"/>
+                  <circle cx="2050" cy="130" r="1"   opacity=".5"/>
+                </g>
+
+                <!-- distant tree silhouettes -->
+                <polygon points="20,290 60,200 100,290"      fill="#0a0820"/>
+                <polygon points="400,290 440,210 480,290"    fill="#0a0820"/>
+                <polygon points="850,290 880,180 910,290"    fill="#0a0820"/>
+                <polygon points="1400,290 1440,220 1480,290" fill="#0a0820"/>
+                <polygon points="1900,290 1930,200 1960,290" fill="#0a0820"/>
+                <polygon points="2280,290 2320,170 2360,290" fill="#0a0820"/>
+
+                <!-- ground -->
+                <rect x="0" y="280" width="2400" height="150" fill="#0a0820"/>
+
+                <!-- ═══ STAGE 2 (far left ~ x=120-340) ═══ -->
+                <rect x="120" y="200" width="220" height="90" fill="#1a0a3a" opacity=".85"/>
+                <rect x="140" y="186" width="180" height="16" fill="#2a0a4a"/>
+                <line x1="140" y1="186" x2="140" y2="290" stroke="#3a1a5a" stroke-width="3"/>
+                <line x1="320" y1="186" x2="320" y2="290" stroke="#3a1a5a" stroke-width="3"/>
+                <rect x="160" y="208" width="140" height="50" fill="url(#stage2GradHome)" opacity=".75"/>
+
+                <!-- ═══ FOOD ZONE tents (x=440-640) ═══ -->
+                <polygon points="440,240 470,225 500,240" fill="#3a2a1e"/>
+                <polygon points="510,240 540,225 570,240" fill="#3a2a1e"/>
+                <polygon points="580,240 610,225 640,240" fill="#3a2a1e"/>
+                <rect x="440" y="240" width="60" height="50" rx="6" fill="#2a1a0e" opacity=".85"/>
+                <rect x="510" y="240" width="60" height="50" rx="6" fill="#2a1a0e" opacity=".85"/>
+                <rect x="580" y="240" width="60" height="50" rx="6" fill="#2a1a0e" opacity=".85"/>
+
+                <!-- ═══ TOILETS booth (x=750-830) ═══ -->
+                <rect x="750" y="246" width="80" height="44" rx="6" fill="#10202a" opacity=".85"/>
+
+                <!-- ═══ MAIN STAGE (center ~ x=1050-1370) ═══ -->
+                <rect x="1050" y="180" width="320" height="110" fill="#1a0a3a" opacity=".9"/>
+                <rect x="1070" y="160" width="280" height="22" fill="#2a0a4a"/>
+                <line x1="1070" y1="160" x2="1070" y2="290" stroke="#3a1a5a" stroke-width="3"/>
+                <line x1="1350" y1="160" x2="1350" y2="290" stroke="#3a1a5a" stroke-width="3"/>
+                <rect x="1100" y="200" width="220" height="60" fill="url(#stageGradHome)" opacity=".85"/>
+                <!-- side speakers -->
+                <rect x="1020" y="220" width="20" height="70" fill="#1a1a2e"/>
+                <rect x="1380" y="220" width="20" height="70" fill="#1a1a2e"/>
+
+                <!-- ═══ ICE CREAM booth (x=1700-1820) ═══ -->
+                <rect x="1700" y="240" width="120" height="50" rx="8" fill="#2a0a20" opacity=".85"/>
+                <circle cx="1740" cy="232" r="8" fill="#ec4899" opacity=".6"/>
+                <circle cx="1780" cy="232" r="8" fill="#a855f7" opacity=".6"/>
+
+                <!-- ═══ BOARD GAMES tent (x=1980-2160) ═══ -->
+                <polygon points="1980,200 2070,160 2160,200" fill="#3a1a5a"/>
+                <rect x="1980" y="200" width="180" height="90" fill="#1e1e2a" opacity=".85"/>
+                <line x1="2070" y1="160" x2="2070" y2="200" stroke="#facc15" stroke-width="2" opacity=".6"/>
+
+                <!-- ═══ AR PORTAL (right edge ~ x=2280) ═══ -->
+                <circle cx="2280" cy="220" r="60" fill="url(#portalGlowHome)"/>
+                <circle cx="2280" cy="220" r="28" fill="none" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="4,3" opacity=".7"/>
+                <circle cx="2280" cy="220" r="14" fill="none" stroke="#22d3ee" stroke-width="1" stroke-dasharray="2,2" opacity=".8"/>
+
+                <!-- crowd silhouette -->
+                <ellipse cx="1200" cy="340" rx="1400" ry="60" fill="url(#crowdGradHome)"/>
+
+                <!-- crowd heads (front row) -->
+                <g fill="#0a0820" opacity=".95">
+                  <circle cx="60"   cy="320" r="8"/> <circle cx="120"  cy="328" r="10"/>
+                  <circle cx="180"  cy="322" r="9"/> <circle cx="240"  cy="330" r="11"/>
+                  <circle cx="300"  cy="325" r="9"/> <circle cx="360"  cy="318" r="8"/>
+                  <circle cx="420"  cy="330" r="10"/><circle cx="480"  cy="322" r="9"/>
+                  <circle cx="540"  cy="328" r="11"/><circle cx="600"  cy="320" r="8"/>
+                  <circle cx="660"  cy="330" r="10"/><circle cx="720"  cy="324" r="9"/>
+                  <circle cx="780"  cy="328" r="10"/><circle cx="840"  cy="322" r="9"/>
+                  <circle cx="900"  cy="330" r="11"/><circle cx="960"  cy="320" r="8"/>
+                  <circle cx="1020" cy="328" r="10"/><circle cx="1080" cy="324" r="9"/>
+                  <circle cx="1140" cy="330" r="11"/><circle cx="1200" cy="322" r="9"/>
+                  <circle cx="1260" cy="328" r="10"/><circle cx="1320" cy="320" r="8"/>
+                  <circle cx="1380" cy="330" r="10"/><circle cx="1440" cy="324" r="9"/>
+                  <circle cx="1500" cy="328" r="11"/><circle cx="1560" cy="322" r="9"/>
+                  <circle cx="1620" cy="320" r="8"/> <circle cx="1680" cy="328" r="10"/>
+                  <circle cx="1740" cy="324" r="9"/> <circle cx="1800" cy="330" r="11"/>
+                  <circle cx="1860" cy="322" r="9"/> <circle cx="1920" cy="328" r="10"/>
+                  <circle cx="1980" cy="320" r="8"/> <circle cx="2040" cy="330" r="10"/>
+                  <circle cx="2100" cy="324" r="9"/> <circle cx="2160" cy="328" r="11"/>
+                  <circle cx="2220" cy="322" r="9"/> <circle cx="2280" cy="330" r="10"/>
+                  <circle cx="2340" cy="324" r="9"/>
+                </g>
+                <!-- crowd heads (back row, larger) -->
+                <g fill="#0a0820" opacity=".95">
+                  <circle cx="100"  cy="358" r="12"/><circle cx="180"  cy="352" r="11"/>
+                  <circle cx="260"  cy="362" r="13"/><circle cx="340"  cy="354" r="12"/>
+                  <circle cx="420"  cy="358" r="13"/><circle cx="500"  cy="352" r="11"/>
+                  <circle cx="580"  cy="362" r="12"/><circle cx="660"  cy="356" r="13"/>
+                  <circle cx="740"  cy="358" r="11"/><circle cx="820"  cy="354" r="12"/>
+                  <circle cx="900"  cy="362" r="13"/><circle cx="980"  cy="356" r="12"/>
+                  <circle cx="1060" cy="358" r="11"/><circle cx="1140" cy="352" r="13"/>
+                  <circle cx="1220" cy="362" r="12"/><circle cx="1300" cy="354" r="13"/>
+                  <circle cx="1380" cy="358" r="11"/><circle cx="1460" cy="352" r="12"/>
+                  <circle cx="1540" cy="362" r="13"/><circle cx="1620" cy="356" r="12"/>
+                  <circle cx="1700" cy="358" r="11"/><circle cx="1780" cy="354" r="13"/>
+                  <circle cx="1860" cy="362" r="12"/><circle cx="1940" cy="354" r="11"/>
+                  <circle cx="2020" cy="358" r="13"/><circle cx="2100" cy="352" r="12"/>
+                  <circle cx="2180" cy="362" r="13"/><circle cx="2260" cy="358" r="11"/>
+                  <circle cx="2340" cy="354" r="12"/>
+                </g>
+              </svg>
+              <!-- moving spotlights (only over main stage area) -->
+              <div class="spotlight l" style="left:46%"></div>
+              <div class="spotlight c" style="left:50%"></div>
+              <div class="spotlight r" style="left:54%"></div>
+            </div>
+
+            <!-- ═══ World-anchored AR labels ═══ -->
+            <div class="ar-label" style="top:38%; left:175px;">
+              <span class="al-icon">🎸</span>STAGE 2
+              <span class="al-dist">160m · INNA in 2h</span>
+            </div>
+            <div class="ar-label" style="top:50%; left:485px;">
+              <span class="al-icon">🍔</span>FOOD ZONE
+              <span class="al-dist">60m · 8 stalls open</span>
+            </div>
+            <div class="ar-label" style="top:55%; left:750px;">
+              <span class="al-icon">🚻</span>TOILETS
+              <span class="al-dist">40m · Low wait</span>
+            </div>
+            <div class="ar-label" style="top:36%; left:1130px;">
+              <span class="al-icon">🎤</span>MAIN STAGE
+              <span class="al-dist">120m · Irina Rimes in 5 min</span>
+            </div>
+            <div class="ar-label" style="top:50%; left:1690px;">
+              <span class="al-icon">🍦</span>FREE ICE CREAM
+              <span class="al-dist">90m · 30 min left</span>
+            </div>
+            <div class="ar-label" style="top:38%; left:2010px;">
+              <span class="al-icon">🎲</span>BOARD GAMES
+              <span class="al-dist">200m · 15min wait</span>
+            </div>
+            <div class="ar-label" style="top:40%; left:2225px; border-color: rgba(236,72,153,.6);">
+              <span class="al-icon">🌀</span>AR PORTAL
+              <span class="al-dist">320m · Enter the rift</span>
+            </div>
+
+            <!-- ═══ Friend markers anchored in world ═══ -->
+            <div class="ar-friend" style="top:68%; left:265px;" onclick="vrToast('💬 Laura · Stage 2 · 310m')">
+              <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#facc15,#fb923c)">L</div>
+              Laura · 310m
+            </div>
+            <div class="ar-friend" style="top:72%; left:565px;" onclick="vrToast('💬 Ionuț · Food Zone · 80m')">
+              <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)">I</div>
+              Ionuț · 80m
+            </div>
+            <div class="ar-friend" style="top:68%; left:1185px;" onclick="vrToast('💬 Maria · Main Stage · 120m')">
+              <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#a855f7,#ec4899)">M</div>
+              Maria · 120m
+            </div>
+            <div class="ar-friend" style="top:70%; left:2005px;" onclick="vrToast('💬 Andrei · Board Games · 200m')">
+              <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#4ade80,#22d3ee)">A</div>
+              Andrei · 200m
+            </div>
+
+          </div><!-- /vr-world -->
+
+          <!-- ═══ HEAD-MOUNTED HUD (does NOT pan) ═══ -->
+
+          <!-- Heading compass strip -->
+          <div class="heading-strip">
+            <div class="heading-pointer"></div>
+            <div class="heading-inner" id="vrHeadingInner">
+              <span class="dim">SW</span>
+              <span class="dim">·</span>
+              <span>W</span>
+              <span class="dim">·</span>
+              <span>NW</span>
+              <span class="dim">·</span>
+              <span class="north">N</span>
+              <span class="dim">·</span>
+              <span>NE</span>
+              <span class="dim">·</span>
+              <span>E</span>
+              <span class="dim">·</span>
+              <span class="dim">SE</span>
+            </div>
           </div>
 
-          <!-- AR labels anchored over scene -->
-          <div class="ar-label" style="top:48%; left:50%; transform:translateX(-50%);">
-            <span class="al-icon">🎤</span>MAIN STAGE
-            <span class="al-dist">120m · Irina Rimes in 5 min</span>
-          </div>
-
-          <div class="ar-label" style="top:55%; left:14%;">
-            <span class="al-icon">🍔</span>FOOD ZONE
-            <span class="al-dist">60m · 8 stalls</span>
-          </div>
-
-          <div class="ar-label" style="top:55%; right:14%;">
-            <span class="al-icon">🍦</span>FREE ICE CREAM
-            <span class="al-dist">90m · 30 min left</span>
-          </div>
-
-          <!-- friend markers -->
-          <div class="ar-friend" style="top:70%; left:30%;" onclick="vrToast('💬 Maria · 120m')">
-            <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#a855f7,#ec4899)">M</div>
-            Maria · 120m
-          </div>
-          <div class="ar-friend" style="top:75%; left:60%;" onclick="vrToast('💬 Ionuț · 80m')">
-            <div class="ar-friend-avatar" style="background:linear-gradient(135deg,#0ea5e9,#22d3ee)">I</div>
-            Ionuț · 80m
-          </div>
-
-          <!-- Greeting -->
-          <div class="hud-greeting">
+          <!-- Greeting (head-mounted) -->
+          <div class="hud-greeting" style="top:84px">
             <div class="hg-time">21:45 · Friday</div>
             <div class="hg-event">Electric Castle 2026</div>
             <div class="hg-sub">Banffy Castle · Cluj-Napoca · LIVE</div>
@@ -1441,6 +1713,12 @@
               <div class="sc-name">Andrei<div class="sc-meta">Board Games</div></div>
               <div class="sc-meta">200m</div>
             </div>
+          </div>
+
+          <!-- Drag-to-look hint -->
+          <div class="drag-hint" id="vrDragHint">
+            <span class="dh-icon">⟷</span>
+            Drag to look around
           </div>
 
         </div>
@@ -1870,6 +2148,123 @@
     const map = { '1':'home', '2':'radar', '3':'navigate', '4':'alert', '5':'portal', '6':'settings', '0':'boot', '9':'pair' };
     if (map[e.key]) vrGo(map[e.key]);
   });
+
+  // ─── WORLD PAN (drag to look around) ─────────────────
+  (function() {
+    const visor    = document.querySelector('.visor');
+    const world    = document.getElementById('vrWorld');
+    const heading  = document.getElementById('vrHeadingInner');
+    const dragHint = document.getElementById('vrDragHint');
+
+    if (!visor || !world) return;
+
+    // panorama:  world 2400px, visor 860px → range [-(2400-860), 0] = [-1540, 0]
+    const WORLD_W   = 2400;
+    const VISOR_W   = 860;
+    const MIN_PAN   = -(WORLD_W - VISOR_W);   // -1540 (looking far right / East)
+    const MAX_PAN   =  0;                     //         (looking far left  / West)
+    const CENTER    = -((WORLD_W - VISOR_W) / 2); // -770 (North / forward)
+    let   panX      = CENTER;
+
+    let dragging  = false;
+    let startX    = 0;
+    let startPan  = 0;
+    let hintShown = false;
+    let hintTimer = null;
+
+    function applyPan(x, smooth) {
+      panX = Math.min(MAX_PAN, Math.max(MIN_PAN, x));
+      world.classList.toggle('smooth', !!smooth);
+      world.style.transform = `translateX(${panX}px)`;
+
+      // map pan offset to heading strip translation
+      // when panX = CENTER  → heading shows N (offset 0)
+      // when panX = MAX_PAN → looking West  → offset positive (strip slides right so W lands center)
+      // when panX = MIN_PAN → looking East  → offset negative
+      const t = (panX - CENTER) / (CENTER); // -1..0..1 ish
+      // each cardinal segment ~ 33px (gap 22 + char ~11) → 3 segments to E/W
+      const headingOffset = t * 100;        // 100px swing total
+      if (heading) heading.style.transform = `translateX(calc(-50% + ${headingOffset}px))`;
+    }
+
+    // init transform + heading
+    applyPan(CENTER, false);
+
+    // only allow dragging on the home screen
+    function panEnabled() { return vrCurrent === 'home'; }
+
+    visor.addEventListener('pointerdown', e => {
+      if (!panEnabled()) return;
+      // don't intercept clicks on friend chips / interactive HUD
+      if (e.target.closest('.ar-friend, .dock-btn, .side-card, .heading-strip, .hud-statusbar')) return;
+      dragging = true;
+      startX   = e.clientX;
+      startPan = panX;
+      visor.classList.add('dragging');
+      try { visor.setPointerCapture(e.pointerId); } catch(_) {}
+      // hide hint as soon as user starts interacting
+      if (dragHint && hintShown) {
+        dragHint.classList.remove('show');
+        hintShown = false;
+      }
+    });
+
+    visor.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      applyPan(startPan + dx, false);
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      visor.classList.remove('dragging');
+    }
+    visor.addEventListener('pointerup',     endDrag);
+    visor.addEventListener('pointercancel', endDrag);
+    visor.addEventListener('pointerleave',  endDrag);
+
+    // recenter via double-click anywhere on the home scene
+    visor.addEventListener('dblclick', () => {
+      if (!panEnabled()) return;
+      applyPan(CENTER, true);
+      vrToast('🧭 Centered (facing North)');
+    });
+
+    // show / hide hint + grab cursor when entering / leaving home
+    const origVrGo = window.vrGo;
+    window.vrGo = function(id) {
+      origVrGo(id);
+      const onHome = (id === 'home');
+      visor.classList.toggle('lookable', onHome);
+
+      if (dragHint) {
+        clearTimeout(hintTimer);
+        if (onHome) {
+          // show the hint shortly after arriving on home
+          hintTimer = setTimeout(() => {
+            dragHint.classList.add('show');
+            hintShown = true;
+            // auto-fade after a while
+            hintTimer = setTimeout(() => {
+              dragHint.classList.remove('show');
+              hintShown = false;
+            }, 4500);
+          }, 600);
+        } else {
+          dragHint.classList.remove('show');
+          hintShown = false;
+        }
+      }
+    };
+
+    // keyboard arrows pan the world (nice for accessibility / demo)
+    document.addEventListener('keydown', e => {
+      if (!panEnabled()) return;
+      if (e.key === 'ArrowLeft')  applyPan(panX + 120, true);
+      if (e.key === 'ArrowRight') applyPan(panX - 120, true);
+    });
+  })();
 
   // ─── scale headset to viewport ───────────────────────
   function scaleHeadset() {

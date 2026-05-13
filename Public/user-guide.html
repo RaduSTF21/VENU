@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VENU – Ghid utilizator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080814; --surface: #12122a;
+    --card: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.10);
+    --purple: #a855f7; --purple-d: #7c3aed; --pink: #ec4899;
+    --cyan: #22d3ee; --yellow: #facc15; --green: #4ade80; --red: #f87171;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh; padding: 40px 24px 80px; line-height: 1.6;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: ''; position: fixed; border-radius: 50%; filter: blur(140px);
+    pointer-events: none; z-index: 0;
+  }
+  body::before { width: 500px; height: 500px; background: rgba(168,85,247,.18); top: -150px; left: -150px; }
+  body::after  { width: 500px; height: 500px; background: rgba(34,211,238,.12); bottom: -150px; right: -150px; }
+
+  .layout {
+    max-width: 1180px; margin: 0 auto; position: relative; z-index: 1;
+    display: grid; grid-template-columns: 240px 1fr; gap: 40px;
+  }
+
+  /* ─── SIDEBAR / TOC ─── */
+  .toc {
+    position: sticky; top: 30px;
+    align-self: start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 18px;
+    backdrop-filter: blur(8px);
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .toc-eyebrow {
+    font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted); font-weight: 800;
+    margin-bottom: 14px;
+  }
+  .toc ul { list-style: none; }
+  .toc li { margin-bottom: 4px; }
+  .toc > ul > li > a { font-weight: 800; color: var(--purple); }
+  .toc a {
+    display: block;
+    padding: 5px 10px;
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    transition: background .15s;
+  }
+  .toc a:hover { background: rgba(168,85,247,.15); }
+  .toc ul ul { margin: 4px 0 8px 8px; padding-left: 8px; border-left: 1px solid var(--border); }
+  .toc ul ul a { font-size: 12px; color: var(--muted); }
+  .toc ul ul a:hover { color: var(--text); }
+
+  /* ─── MAIN CONTENT ─── */
+  .content { min-width: 0; }
+
+  .doc-header { margin-bottom: 40px; }
+  .doc-eyebrow { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .doc-title {
+    font-size: 48px; font-weight: 900; letter-spacing: -.03em;
+    background: linear-gradient(135deg, #fff, var(--purple) 60%, var(--pink) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .doc-sub { color: var(--muted); margin-top: 8px; font-size: 14px; max-width: 640px; }
+
+  h2 {
+    font-size: 28px; font-weight: 800;
+    letter-spacing: -.02em;
+    margin: 56px 0 8px;
+    padding-top: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  h2 .h2-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--purple-d), var(--purple));
+    font-size: 14px; font-weight: 900;
+    box-shadow: 0 4px 12px rgba(124,58,237,.4);
+  }
+  h2 .h2-emoji { font-size: 30px; }
+
+  h3 {
+    font-size: 18px; font-weight: 800;
+    margin: 28px 0 8px;
+    color: var(--text);
+    border-left: 3px solid var(--purple);
+    padding-left: 12px;
+  }
+  h4 {
+    font-size: 14px; font-weight: 800;
+    margin: 16px 0 6px;
+    color: var(--purple);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  p { font-size: 14px; color: var(--text); margin-bottom: 10px; }
+  p.lead { font-size: 16px; color: var(--muted); line-height: 1.6; }
+
+  ul.bullet, ol.numbered {
+    margin: 8px 0 12px 4px;
+    padding-left: 22px;
+  }
+  ul.bullet li, ol.numbered li {
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  ul.bullet li::marker { color: var(--purple); }
+  ol.numbered li::marker { color: var(--cyan); font-weight: 800; }
+
+  code, .kbd {
+    background: rgba(168,85,247,.15);
+    color: var(--purple);
+    padding: 1px 7px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: .02em;
+  }
+  .kbd {
+    background: rgba(255,255,255,.06);
+    color: var(--text);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 0 rgba(0,0,0,.4);
+    font-weight: 700;
+  }
+
+  .tip, .warning, .info {
+    margin: 14px 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    border-left: 3px solid;
+  }
+  .tip {
+    background: rgba(74,222,128,.10);
+    border-color: var(--green);
+  }
+  .tip strong { color: var(--green); }
+  .warning {
+    background: rgba(250,204,21,.10);
+    border-color: var(--yellow);
+  }
+  .warning strong { color: var(--yellow); }
+  .info {
+    background: rgba(34,211,238,.10);
+    border-color: var(--cyan);
+  }
+  .info strong { color: var(--cyan); }
+
+  .screen-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+  .screen-card .sc-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 8px;
+  }
+  .screen-card .sc-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .screen-card .sc-title { font-size: 16px; font-weight: 800; }
+  .screen-card .sc-purpose {
+    font-size: 11px; color: var(--muted); margin-left: auto;
+    letter-spacing: .05em; text-transform: uppercase;
+  }
+
+  .shortcuts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .shortcuts-table th, .shortcuts-table td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .shortcuts-table th {
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .shortcuts-table tr:last-child td { border-bottom: none; }
+
+  .doc-footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 12px; }
+  .doc-footer a { color: var(--purple); text-decoration: none; font-weight: 600; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { position: static; max-height: none; }
+  }
+  @media print {
+    body::before, body::after { display: none; }
+    .layout { grid-template-columns: 1fr; }
+    .toc { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ─── SIDEBAR ─── -->
+  <nav class="toc">
+    <div class="toc-eyebrow">Ghid utilizator · Cuprins</div>
+    <ul>
+      <li><a href="#intro">Introducere</a></li>
+      <li><a href="#mobile">1 · Aplicație mobilă</a>
+        <ul>
+          <li><a href="#mob-launch">Pornire și autentificare</a></li>
+          <li><a href="#mob-home">Tablou Acasă</a></li>
+          <li><a href="#mob-map">Hartă</a></li>
+          <li><a href="#mob-friends">Prieteni</a></li>
+          <li><a href="#mob-activities">Activități</a></li>
+          <li><a href="#mob-notif">Notificări</a></li>
+          <li><a href="#mob-settings">Setări</a></li>
+        </ul>
+      </li>
+      <li><a href="#vr">2 · Cască MR</a>
+        <ul>
+          <li><a href="#vr-launch">Pornire</a></li>
+          <li><a href="#vr-pair">Împerechere</a></li>
+          <li><a href="#vr-home">HUD Acasă + privire în jur</a></li>
+          <li><a href="#vr-radar">Radar / Hartă</a></li>
+          <li><a href="#vr-nav">Navigație AR</a></li>
+          <li><a href="#vr-alert">Alertă activitate</a></li>
+          <li><a href="#vr-portal">Portal AR</a></li>
+          <li><a href="#vr-settings">Setări și gesturi</a></li>
+        </ul>
+      </li>
+      <li><a href="#watch">3 · Smartwatch</a>
+        <ul>
+          <li><a href="#w-notif">Notificări</a></li>
+          <li><a href="#w-nav">Navigație</a></li>
+          <li><a href="#w-quick">Acțiuni rapide</a></li>
+          <li><a href="#w-health">Sănătate și activitate</a></li>
+          <li><a href="#w-settings">Setări</a></li>
+        </ul>
+      </li>
+      <li><a href="#shortcuts">4 · Scurtături tastatură</a></li>
+      <li><a href="#troubleshooting">5 · Depanare</a></li>
+    </ul>
+  </nav>
+
+  <!-- ─── MAIN ─── -->
+  <main class="content">
+
+    <header class="doc-header">
+      <div class="doc-eyebrow">VENU · Asistent de festival</div>
+      <h1 class="doc-title">Ghid utilizator</h1>
+      <p class="doc-sub">Parcurs complet prin fiecare ecran din cele trei prototipuri VENU: mobil, cască MR și smartwatch.</p>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="intro">
+      <p class="lead">VENU este asistentul tău la festival pe trei dispozitive: smartphone pentru planificare, cască MR pentru descoperire hands-free și smartwatch pentru interacțiuni la o privire. Ghidul e organizat pe dispozitiv — fiecare prototip e un singur fișier HTML pe care îl poți deschide în orice browser modern.</p>
+
+      <div class="info"><strong>Cum deschizi prototipurile:</strong> dublu-clic pe oricare dintre cele trei fișiere HTML din <code>/Public/</code>. Nu ai nevoie de build sau de internet.</div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <h2 id="mobile"><span class="h2-num">1</span> <span class="h2-emoji">📱</span> Aplicație mobilă</h2>
+    <p class="lead">Fișier: <code>prototype-mobile.html</code> · 9 ecrane · cadru stil iOS · hartă gestuală.</p>
+
+    <h3 id="mob-launch">1.1 Pornire și autentificare</h3>
+    <p>Deschide fișierul. Vei vedea un cadru de iPhone cu ecran splash: logo VENU și 3 puncte animate. După ~2 secunde trece automat la ecranul de autentificare.</p>
+
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">🔐</div>
+        <div class="sc-title">Ecran autentificare</div>
+        <div class="sc-purpose">autentificare</div>
+      </div>
+      <ul class="bullet">
+        <li>Emailul și parola sunt precompletate pentru demo — apasă butonul principal de autentificare.</li>
+        <li>Butonul <em>Continuă cu dispozitiv AR</em> afișează un toast („Autentificare ochelari AR în curând”) — ilustrează ideea de împerechere între dispozitive.</li>
+        <li>Apasă linkul de înregistrare din subsol (în prototip poate fi încă în engleză) pentru ecranul de creare cont.</li>
+      </ul>
+    </div>
+
+    <h3 id="mob-home">1.2 Tablou Acasă</h3>
+    <p>După autentificare ajungi la tabloul Acasă.</p>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">🏠</div>
+        <div class="sc-title">Acasă</div>
+        <div class="sc-purpose">tablou de bord · hub</div>
+      </div>
+      <ul class="bullet">
+        <li><strong>Salut</strong> sus: „Bună seara, Alex” + bannerul evenimentului live (Electric Castle 2026).</li>
+        <li><strong>5 dale rapide</strong>: <em>Hartă</em>, <em>Prieteni</em>, <em>Activități</em>, <em>Alerte</em> și un rând lat <em>Setări</em>.</li>
+        <li>Fiecare dală arată un indiciu contextual (ex.: „3 prieteni în apropiere”, „5 acum în desfășurare”).</li>
+        <li>Atinge orice dală pentru a intra în secțiune.</li>
+      </ul>
+    </div>
+
+    <h3 id="mob-map">1.3 Hartă</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)">🗺️</div>
+        <div class="sc-title">Hartă festival</div>
+        <div class="sc-purpose">geo · prieteni · locații</div>
+      </div>
+      <p>Harta arată zone (scena principală, scena 2, food, toalete, înghețată, jocuri, portal AR etc.) și poziții live pentru <strong>TU</strong> (mov), <strong>prieteni</strong> (cyan/albastru/galben) și o linie întreruptă care pulsează către un prieten urmărit.</p>
+      <h4>Interacțiuni</h4>
+      <ul class="bullet">
+        <li><strong>Trage</strong> oriunde pe hartă pentru pan. Busola sus-dreapta se rotește cu mișcarea ta și revine la Nord la eliberare.</li>
+        <li><strong>Atinge o zonă</strong> (ex. scena principală) → foaia de jos urcă cu status, artist, capacitate și acțiune principală (Adaugă în program, Amintește-mi, Indicații etc.).</li>
+        <li><strong>Atinge un prieten</strong> → fișă personală cu avatar, bio, distanță, prieteni comuni și buton <em>Trimite mesaj</em>.</li>
+        <li><strong>Atinge pictograma crosshair</strong> sus-dreapta pentru a re-centra pe TINE.</li>
+        <li>Subsolul cu statistici arată mereu: Prieteni · Activități · Status.</li>
+      </ul>
+      <div class="tip"><strong>Sfat:</strong> în prototip tragerea e cu mouse-ul; în producție ar răspunde și la atingere și la mișcare fizică cu ochelarii împerecheați.</div>
+    </div>
+
+    <h3 id="mob-friends">1.4 Prieteni</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#8b5cf6,#a855f7)">👥</div>
+        <div class="sc-title">Prieteni</div>
+        <div class="sc-purpose">rețea socială</div>
+      </div>
+      <ul class="bullet">
+        <li>Împărțit în <strong>Online acum</strong> și <strong>Offline</strong>.</li>
+        <li>Fiecare rând: avatar cu chenar verde (online), nume, ultima locație cunoscută și distanță, două pictograme acțiune (localizează pe hartă · chat).</li>
+        <li>Bara de căutare sus acceptă orice text — în prototip e doar placeholder.</li>
+        <li>Pictograma de adăugare din header simulează trimiterea unei cereri de prietenie prin toast.</li>
+      </ul>
+    </div>
+
+    <h3 id="mob-activities">1.5 Activități</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#f97316,#fb923c)">⚡</div>
+        <div class="sc-title">Activități</div>
+        <div class="sc-purpose">program + oferte</div>
+      </div>
+      <ul class="bullet">
+        <li><strong>Chip-uri filtru</strong> orizontale: Toate · Muzică · Mâncare · Jocuri · Gratis · AR. Chip-ul activ devine mov.</li>
+        <li>Listă de activități cu cronometre; sub 10 minute cronometrul pulsează roșu.</li>
+        <li>Fiecare rând are badge de categorie colorat.</li>
+        <li>Atinge un rând pentru a-l „salva” (confirmare toast).</li>
+      </ul>
+    </div>
+
+    <h3 id="mob-notif">1.6 Notificări</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#ec4899,#f43f5e)">🔔</div>
+        <div class="sc-title">Notificări</div>
+        <div class="sc-purpose">preferințe + flux</div>
+      </div>
+      <ul class="bullet">
+        <li>Secțiunea de sus: <strong>3 comutatoare</strong> (alerte activități, prieteni aproape, oferte sponsor). Comută — apare toast de confirmare.</li>
+        <li>Jos: flux de alerte recente. Itemurile necitite au punct mov mic.</li>
+      </ul>
+    </div>
+
+    <h3 id="mob-settings">1.7 Setări</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#6b7280,#9ca3af)">⚙️</div>
+        <div class="sc-title">Setări</div>
+        <div class="sc-purpose">profil · confidențialitate · dispozitive</div>
+      </div>
+      <ul class="bullet">
+        <li>Hero profil cu avatar + buton editare poză.</li>
+        <li>Trei grupuri: <strong>Profil</strong> (nume, email, telefon) · <strong>Confidențialitate</strong> (urmărire hartă, vizibilitate prieteni) · <strong>Dispozitive</strong> (ochelari AR, smartwatch — ambele „Conectate”).</li>
+        <li><strong>Deconectare</strong> jos te întoarce la autentificare.</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <h2 id="vr"><span class="h2-num">2</span> <span class="h2-emoji">👓</span> Cască MR</h2>
+    <p class="lead">Fișier: <code>prototype-vr.html</code> · 8 straturi HUD · lume AR panoramică · trage pentru a privi în jur.</p>
+
+    <h3 id="vr-launch">2.1 Pornire</h3>
+    <p>Deschide fișierul. Apare șasiul căștii cu vizor luminos înăuntru.</p>
+    <ul class="bullet">
+      <li>HUD-ul <strong>Pornire</strong> arată logo VENU pulsând, bară de progres nedeterminată și linie de status rotativă: „Inițializare optică… / Calibrare senzori IMU… / Fixare semnal GPS…”.</li>
+      <li>După ~2,8s trece automat la ecranul de împerechere.</li>
+    </ul>
+
+    <h3 id="vr-pair">2.2 Împerechere cu telefonul</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">🔗</div>
+        <div class="sc-title">Ecran împerechere</div>
+        <div class="sc-purpose">sincron între dispozitive</div>
+      </div>
+      <ul class="bullet">
+        <li>Animația arată telefon ↔ ochelari cu particule în mișcare.</li>
+        <li>Un <strong>cod din 4 cifre</strong> (8329) s-ar introduce pe telefon în producție.</li>
+        <li><em>Continuă fără telefon</em> sare în mod invitat și ajunge la HUD Acasă.</li>
+        <li>După ~2,4s prototipul avansează automat la HUD Acasă pentru demo.</li>
+      </ul>
+    </div>
+
+    <h3 id="vr-home">2.3 HUD Acasă + privire în jur</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)">🌍</div>
+        <div class="sc-title">HUD Acasă (vedere operațională implicită)</div>
+        <div class="sc-purpose">suprapunere AR</div>
+      </div>
+      <p>Vederea principală. Vizorul întunecat arată o scenă panoramică de festival (scena 2 stânga, scena principală centru, jocuri / portal AR dreapta) cu mai multe suprapuneri:</p>
+      <ul class="bullet">
+        <li><strong>Pastilă status</strong> sus: ceas live, fix GPS, indicator împerecheat, baterie.</li>
+        <li><strong>Bandă busolă</strong> imediat sub: N · NE · E · SE · S · SW · W · NW. Indicatorul din mijloc arată direcția capului.</li>
+        <li><strong>Salut</strong>: „21:45 · vineri · Electric Castle 2026 · LIVE”.</li>
+        <li><strong>Carduri laterale</strong>: „Urmează” (3 activități) stânga, „Prieteni online” (3) dreapta — fixate în HUD, nu se mișcă cu lumea.</li>
+        <li><strong>Etichete AR ancorate</strong>: nume scenă, distanță și metrică plutesc deasupra fiecărei zone.</li>
+        <li><strong>Chip-uri prieteni</strong>: bule + inițiale + distanță, ancorate în spațiul 3D la locația prietenului.</li>
+      </ul>
+      <h4>Privire în jur (trage)</h4>
+      <ol class="numbered">
+        <li>Clic oriunde în vizor și trage orizontal pentru a „roti capul”.</li>
+        <li>Bandă busolă se rotește corespunzător (N centrat, E spre dreapta, W spre stânga).</li>
+        <li>Etichetele și chip-urile se mișcă cu lumea; suprapunerile HUD rămân fixe.</li>
+        <li><strong>Dublu-clic</strong> oriunde pe vizor pentru re-centrare (privire spre Nord).</li>
+        <li><strong>Săgeți ← →</strong> pan-orizează lumea cu ~120px pe apăsare, cu easing.</li>
+      </ol>
+      <div class="tip"><strong>Sfat:</strong> panorama are 2400px lățime; poți trage ~1540px în total. Indiciul „⟷ Trage să privești în jur” apare scurt după intrarea în HUD Acasă.</div>
+    </div>
+
+    <h3 id="vr-radar">2.4 Radar / Hartă</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)">📡</div>
+        <div class="sc-title">Radar</div>
+        <div class="sc-purpose">vedere de sus 200m</div>
+      </div>
+      <p>Deschis din doc-ul de jos (al doilea buton).</p>
+      <ul class="bullet">
+        <li>Radar circular cu baleiaj rotativ, două inele de rază și crosshair.</li>
+        <li><strong>Blip-uri</strong> pentru prieteni (cod culoare) și locații. Clic pe blip → toast cu nume și distanță.</li>
+        <li>Card statistici jos: număr Prieteni · Activități · Locații.</li>
+      </ul>
+    </div>
+
+    <h3 id="vr-nav">2.5 Navigație AR</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">🧭</div>
+        <div class="sc-title">Navigare</div>
+        <div class="sc-purpose">săgeată turn-by-turn</div>
+      </div>
+      <ul class="bullet">
+        <li>Card țintă sus: avatar, nume, locație, ETA.</li>
+        <li><strong>Săgeată 3D</strong> mare pulsând în centru, peste grilă în perspectivă.</li>
+        <li>Puncte „breadcrumb” curg înainte pe sol.</li>
+        <li>Pastilă distanță jos.</li>
+      </ul>
+    </div>
+
+    <h3 id="vr-alert">2.6 Alertă activitate</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#ec4899,#f43f5e)">⚠️</div>
+        <div class="sc-title">Popup alertă activitate</div>
+        <div class="sc-purpose">amintire la timp</div>
+      </div>
+      <p>Alerta apare automat ~9 secunde după intrarea în HUD Acasă (sau din doc).</p>
+      <ul class="bullet">
+        <li>Banner: „● Activitatea începe curând” (punct live pulsând).</li>
+        <li>Card cu emoji scenă, headliner, locație și countdown roșu.</li>
+        <li>Două acțiuni: <strong>Navighează</strong> (salt la navigație AR) · <strong>Amintește-mi</strong> (toast).</li>
+      </ul>
+    </div>
+
+    <h3 id="vr-portal">2.7 Portal AR</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#ec4899,#a855f7)">🌀</div>
+        <div class="sc-title">Vânătoare portal AR</div>
+        <div class="sc-purpose">experiență sponsor</div>
+      </div>
+      <ul class="bullet">
+        <li>Portal animat cu inele curcubeu, nucleu care pulsează și particule pe orbită.</li>
+        <li>Etichetă sus: „VÂNĂTOARE PORTAL AR · Portal #3 găsit · Apropie-te pentru a intra în dimensiune”.</li>
+        <li>Buton <strong>Intră în portal</strong> jos → activare immersive simulată.</li>
+      </ul>
+    </div>
+
+    <h3 id="vr-settings">2.8 Setări și control gestual</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#6b7280,#9ca3af)">⚙️</div>
+        <div class="sc-title">Setări</div>
+        <div class="sc-purpose">confidențialitate + intrări</div>
+      </div>
+      <ul class="bullet">
+        <li>4 rânduri: <strong>Trimite locația</strong>, <strong>Notificări AR</strong>, <strong>Urmărire ochi</strong>, <strong>Conexiune telefon</strong> (doar citire, arată „Conectat”).</li>
+        <li>Rând jos de chip-uri gest:
+          <span class="kbd">👌 Prinde</span> selectare ·
+          <span class="kbd">✋ Palmă</span> meniu ·
+          <span class="kbd">🎙️ Voce</span> comanda „VENU…” ·
+          <span class="kbd">👆 Atingere</span> touchpad lateral.
+        </li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <h2 id="watch"><span class="h2-num">3</span> <span class="h2-emoji">⌚</span> Smartwatch</h2>
+    <p class="lead">Fișier: <code>prototype-smartwatch.html</code> · 5 pagini prin swipe · layout rotund · navigare cu coroana.</p>
+
+    <h3 id="w-notif">3.1 Notificări (pagina 1)</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#a855f7,#ec4899)">🔔</div>
+        <div class="sc-title">Notificări</div>
+        <div class="sc-purpose">pagină implicită</div>
+      </div>
+      <p>Ceasul se trezește la ridicarea mâinii și deschide aici.</p>
+      <ul class="bullet">
+        <li>Listă derulantă de carduri (mesaj prieten, activitate, ofertă sponsor).</li>
+        <li>Atinge un card pentru extindere; cardul principal are o acțiune dominantă.</li>
+        <li>Swipe orizontal la pagina următoare; punctele jos arată pagina curentă (1/5).</li>
+      </ul>
+    </div>
+
+    <h3 id="w-nav">3.2 Navigație (pagina 2)</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)">🧭</div>
+        <div class="sc-title">Navigație</div>
+        <div class="sc-purpose">săgeată + distanță</div>
+      </div>
+      <p>Când ruta e activă (pornită de pe telefon sau ochelari), pagina arată o săgeată mare înainte și distanța rămasă cu cifre mari.</p>
+    </div>
+
+    <h3 id="w-quick">3.3 Acțiuni rapide (pagina 3)</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#facc15,#f97316)">⚡</div>
+        <div class="sc-title">Acțiuni rapide</div>
+        <div class="sc-purpose">scurtături presetate</div>
+      </div>
+      <ul class="bullet">
+        <li>3 butoane stivuite: <strong>Trimite locația</strong> · <strong>Găsește prieten</strong> · <strong>Notă vocală</strong>.</li>
+        <li>Apăsare lungă pe coroană → <strong>SOS</strong> (trimite locația tuturor prietenilor + staff festival).</li>
+      </ul>
+    </div>
+
+    <h3 id="w-health">3.4 Sănătate și activitate (pagina 4)</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#f87171,#ec4899)">❤️</div>
+        <div class="sc-title">Sănătate</div>
+        <div class="sc-purpose">vitaluri + nudge-uri</div>
+      </div>
+      <ul class="bullet">
+        <li>Două metrici mari: puls (BPM) și număr de pași.</li>
+        <li>Nudge inteligent: „💧 Hidratare scăzută → Găsește apă” (când FC >120 BPM timp de 20+ minute).</li>
+        <li>Rezumatul zilei se generează seara și se sincronizează cu telefonul.</li>
+      </ul>
+    </div>
+
+    <h3 id="w-settings">3.5 Setări (pagina 5)</h3>
+    <div class="screen-card">
+      <div class="sc-head">
+        <div class="sc-icon" style="background:linear-gradient(135deg,#6b7280,#9ca3af)">⚙️</div>
+        <div class="sc-title">Setări</div>
+        <div class="sc-purpose">preferințe pe ceas</div>
+      </div>
+      <ul class="bullet">
+        <li>Comutator Nu deranja, intensitate vibrație, ultima sincronizare telefon, repaus ceas.</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <h2 id="shortcuts"><span class="h2-num">4</span> ⌨️ Scurtături tastatură</h2>
+    <p>Prototipurile includ câteva scurtături de debug pentru demo mai rapid.</p>
+
+    <h3>Mobil</h3>
+    <p>Fără scurtături globale. Doar atingeri.</p>
+
+    <h3>Cască MR</h3>
+    <table class="shortcuts-table">
+      <thead><tr><th>Tastă</th><th>Acțiune</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kbd">0</span></td><td>La Pornire</td></tr>
+        <tr><td><span class="kbd">9</span></td><td>La Împerechere</td></tr>
+        <tr><td><span class="kbd">1</span></td><td>HUD Acasă</td></tr>
+        <tr><td><span class="kbd">2</span></td><td>Radar</td></tr>
+        <tr><td><span class="kbd">3</span></td><td>Navigație AR</td></tr>
+        <tr><td><span class="kbd">4</span></td><td>Alertă activitate</td></tr>
+        <tr><td><span class="kbd">5</span></td><td>Portal AR</td></tr>
+        <tr><td><span class="kbd">6</span></td><td>Setări</td></tr>
+        <tr><td><span class="kbd">←</span> / <span class="kbd">→</span></td><td>Panoramă lume (doar pe HUD Acasă)</td></tr>
+        <tr><td>Dublu-clic</td><td>Re-centrare (privire Nord)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Smartwatch</h3>
+    <p>Swipe orizontal între pagini cu mouse-ul; punctele de jos arată progresul.</p>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <h2 id="troubleshooting"><span class="h2-num">5</span> 🛠 Depanare</h2>
+
+    <div class="warning"><strong>Trage-pentru-privire nu merge în prototipul VR.</strong> Asigură-te că ești pe <em>HUD Acasă</em> (cursorul devine „mână” în vizor). Tragerea e dezactivată intenționat la Pornire, Împerechere, Radar, Navigare, Alertă, Portal și Setări.</div>
+
+    <div class="warning"><strong>Busola nu se rotește.</strong> Busola e legată de panorama. Dacă lumea nu se translatează, tragerea poate fi interceptată de un overlay (chip prieten, doc, card lateral). Încearcă o zonă mai liberă a vizorului.</div>
+
+    <div class="warning"><strong>Animațiile sacadează.</strong> Prototipurile folosesc backdrop-filter și box-shadow în CSS. Folosește Chrome / Edge / Safari recent; browsere vechi pot avea probleme.</div>
+
+    <div class="info"><strong>Prototip mobil:</strong> cadrul iPhone e cosmetic — evenimentele de atingere trec la ecranele interioare. Tragerea cu mouse-ul merge pe hartă.</div>
+
+    <footer class="doc-footer">
+      VENU Asistent de festival · Ghid utilizator v1.0 · 2026 ·
+      <a href="../README.md">acasă proiect</a>
+    </footer>
+
+  </main>
+</div>
+
+</body>
+</html>

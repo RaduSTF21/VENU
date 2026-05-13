@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VENU – Profiluri</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080814;
+    --surface: #12122a;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.10);
+    --purple: #a855f7;
+    --purple-d: #7c3aed;
+    --pink: #ec4899;
+    --cyan: #22d3ee;
+    --yellow: #facc15;
+    --green: #4ade80;
+    --red: #f87171;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(140px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before { width: 500px; height: 500px; background: rgba(168,85,247,.18); top: -150px; left: -150px; }
+  body::after  { width: 500px; height: 500px; background: rgba(34,211,238,.12); bottom: -150px; right: -150px; }
+
+  .container { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .doc-header { text-align: center; margin-bottom: 48px; }
+  .doc-eyebrow {
+    font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .doc-title {
+    font-size: 44px; font-weight: 900; letter-spacing: -.03em;
+    background: linear-gradient(135deg, #fff, var(--purple) 60%, var(--pink) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .doc-sub { color: var(--muted); margin-top: 8px; font-size: 14px; }
+
+  .personas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  .persona {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    transition: transform .2s, border-color .2s;
+  }
+  .persona:hover { transform: translateY(-4px); border-color: rgba(168,85,247,.3); }
+
+  .persona-hero {
+    padding: 28px 24px 18px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(168,85,247,.10), transparent);
+  }
+  .persona-avatar {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px; font-weight: 900;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    border: 3px solid rgba(255,255,255,.15);
+  }
+  .persona-name { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+  .persona-role { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: .08em; text-transform: uppercase; }
+
+  .persona-meta {
+    display: flex; gap: 14px; justify-content: center;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--border);
+    font-size: 11px; font-weight: 600;
+    color: var(--text);
+  }
+
+  .persona-quote {
+    margin: 0 24px;
+    padding: 14px 18px;
+    border-left: 3px solid var(--purple);
+    background: rgba(168,85,247,.08);
+    border-radius: 0 12px 12px 0;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .persona-section { padding: 18px 24px; border-top: 1px solid var(--border); }
+  .ps-title {
+    font-size: 10px; font-weight: 800;
+    color: var(--muted); letter-spacing: .15em; text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ps-title::before { content: ''; width: 14px; height: 2px; background: var(--purple); border-radius: 2px; }
+
+  .ps-list { list-style: none; }
+  .ps-list li {
+    font-size: 13px; padding: 4px 0;
+    padding-left: 18px;
+    position: relative;
+    color: var(--text);
+  }
+  .ps-list li::before {
+    content: ''; position: absolute;
+    left: 0; top: 11px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+  }
+  .ps-list.frustrations li::before { background: var(--red); }
+  .ps-list.goals li::before { background: var(--green); }
+
+  .tech-bar {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .tech-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .tech-label { flex: 0 0 90px; color: var(--muted); }
+  .tech-track { flex: 1; height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; }
+  .tech-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--pink)); border-radius: 3px; }
+
+  .devices { display: flex; gap: 8px; flex-wrap: wrap; }
+  .device-chip {
+    padding: 6px 12px;
+    background: rgba(34,211,238,.12);
+    border: 1px solid rgba(34,211,238,.3);
+    color: var(--cyan);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .doc-footer {
+    margin-top: 48px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .doc-footer a { color: var(--purple); text-decoration: none; font-weight: 600; }
+
+  @media print {
+    body { padding: 20px; }
+    body::before, body::after { display: none; }
+    .persona { break-inside: avoid; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-eyebrow">VENU · Asistent de Festival</div>
+    <h1 class="doc-title">Profiluri Utilizatori</h1>
+    <p class="doc-sub">Trei profiluri principale care reprezintă publicul-țintă al aplicației VENU pentru festivaluri, distribuită pe trei tipuri de dispozitive.</p>
+  </div>
+
+  <div class="personas-grid">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- PERSONA 1: ALEX (Festivalier principal)            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="persona">
+      <div class="persona-hero">
+        <div class="persona-avatar" style="background:linear-gradient(135deg,#a855f7,#ec4899)">A</div>
+        <div class="persona-name">Alex Popescu</div>
+        <div class="persona-role">PRINCIPAL · Exploratorul social</div>
+        <div class="persona-meta">
+          <span class="meta-pill">24 ani</span>
+          <span class="meta-pill">Cluj-Napoca</span>
+          <span class="meta-pill">UX Designer</span>
+        </div>
+      </div>
+
+      <div class="persona-quote">
+        „Nu vreau să ratez niciun moment — dar nici nu vreau să-mi pierd prietenii într-o mulțime de 60.000 de oameni."
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Biografie</div>
+        <p style="font-size:13px; color:var(--text)">Necăsătorit, stă într-un apartament închiriat cu prietenii. Merge la 4–6 festivaluri pe an. Își planifică vara în jurul Electric Castle și UNTOLD. Fotografiază totul pentru Instagram și pentru „memoriile" de tip Strava.</p>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Obiective</div>
+        <ul class="ps-list goals">
+          <li>Să știe mereu unde sunt prietenii, fără să spamuiască grupul de WhatsApp</li>
+          <li>Să nu rateze niciun artist preferat</li>
+          <li>Să descopere activități neașteptate (băuturi gratuite, portaluri AR, jocuri)</li>
+          <li>Să țină telefonul în viață toată ziua</li>
+        </ul>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Frustrări</div>
+        <ul class="ps-list frustrations">
+          <li>Mesajele „unde ești?" la fiecare 10 minute</li>
+          <li>Aplicațiile oficiale de festival sunt lente și prost gândite</li>
+          <li>Notificări despre artiști care nu îl interesează</li>
+          <li>Se pierde în mulțime între scene</li>
+        </ul>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Nivel tehnic</div>
+        <div class="tech-bar">
+          <div class="tech-row"><span class="tech-label">Smartphone</span><div class="tech-track"><div class="tech-fill" style="width:95%"></div></div></div>
+          <div class="tech-row"><span class="tech-label">Smartwatch</span><div class="tech-track"><div class="tech-fill" style="width:80%"></div></div></div>
+          <div class="tech-row"><span class="tech-label">AR / VR</span><div class="tech-track"><div class="tech-fill" style="width:60%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Dispozitive deținute</div>
+        <div class="devices">
+          <span class="device-chip">iPhone 15</span>
+          <span class="device-chip">Apple Watch</span>
+          <span class="device-chip">Meta Quest 3</span>
+          <span class="device-chip">MacBook Air</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- PERSONA 2: MARIA (La primul festival mare)         -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="persona">
+      <div class="persona-hero">
+        <div class="persona-avatar" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9)">M</div>
+        <div class="persona-name">Maria Ionescu</div>
+        <div class="persona-role">SECUNDAR · Începătoarea curioasă</div>
+        <div class="persona-meta">
+          <span class="meta-pill">19 ani</span>
+          <span class="meta-pill">Iași</span>
+          <span class="meta-pill">Studentă CTI</span>
+        </div>
+      </div>
+
+      <div class="persona-quote">
+        „E primul meu festival mare — vreau să le văd pe toate și să nu mă simt ca turista pierdută."
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Biografie</div>
+        <p style="font-size:13px; color:var(--text)">Studentă în anul 2 la Calculatoare. A pus bani deoparte tot anul pentru primul bilet la Electric Castle. Merge cu două prietene, dar au gusturi muzicale diferite. Are emoții pentru navigarea în incintă și pentru program.</p>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Obiective</div>
+        <ul class="ps-list goals">
+          <li>Să-și construiască un program personal cu memento-uri, ca să nu țină 40 de artiști minte</li>
+          <li>Să găsească cele mai ieftine variante de mâncare și activările gratuite ale sponsorilor</li>
+          <li>Să încerce experiențe AR / interactive — să facă ziua memorabilă pentru Instagram</li>
+          <li>Să se simtă în siguranță când se întoarce noaptea la camping</li>
+        </ul>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Frustrări</div>
+        <ul class="ps-list frustrations">
+          <li>Hărțile de festival sunt greu de citit pe telefon ziua</li>
+          <li>Nu știe ce scene merită timpul ei</li>
+          <li>Anxietate că rămâne separată de grup noaptea</li>
+          <li>„Insider knowledge" pe care nu îl are (cele mai bune locuri de fotografie, activități ascunse)</li>
+        </ul>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Nivel tehnic</div>
+        <div class="tech-bar">
+          <div class="tech-row"><span class="tech-label">Smartphone</span><div class="tech-track"><div class="tech-fill" style="width:99%"></div></div></div>
+          <div class="tech-row"><span class="tech-label">Smartwatch</span><div class="tech-track"><div class="tech-fill" style="width:30%"></div></div></div>
+          <div class="tech-row"><span class="tech-label">AR / VR</span><div class="tech-track"><div class="tech-fill" style="width:45%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Dispozitive deținute</div>
+        <div class="devices">
+          <span class="device-chip">Samsung Galaxy A54</span>
+          <span class="device-chip">Xiaomi Smart Band</span>
+          <span class="device-chip">Laptop (școală)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- PERSONA 3: DAN (Organizator de festival)           -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div class="persona">
+      <div class="persona-hero">
+        <div class="persona-avatar" style="background:linear-gradient(135deg,#f97316,#facc15)">D</div>
+        <div class="persona-name">Dan „DJ" Marinescu</div>
+        <div class="persona-role">TERȚIAR · Insider de festival</div>
+        <div class="persona-meta">
+          <span class="meta-pill">32 ani</span>
+          <span class="meta-pill">București</span>
+          <span class="meta-pill">Manager evenimente</span>
+        </div>
+      </div>
+
+      <div class="persona-quote">
+        „Fiecare minut în care o mulțime e pierdută sau plictisită e un minut de venit și de engagement pe care îl pierd sponsorii mei."
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Biografie</div>
+        <p style="font-size:13px; color:var(--text)">10 ani în managementul de evenimente. Coordonează activările sponsorilor, programul scenelor și răspunsul la urgențe. Trăiește pe Slack, walkie-talkie-uri și dashboard-uri. Vrea date în timp real despre fluxul mulțimii și angajament ca să poată decide din mers.</p>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Obiective</div>
+        <ul class="ps-list goals">
+          <li>Trimite alerte în timp real (întârzieri, premii, urgențe) către participanți</li>
+          <li>Obține date agregate despre densitatea mulțimii și popularitatea zonelor</li>
+          <li>Crește participarea la activările sponsorilor (rate de claim, dwell time)</li>
+          <li>Reduce numărul de incidente „persoană pierdută" la punctul de informații</li>
+        </ul>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Frustrări</div>
+        <ul class="ps-list frustrations">
+          <li>Nu are o cale fiabilă de a trimite mesaje targetate participanților</li>
+          <li>Datele despre fluxul mulțimii sunt disponibile abia după eveniment</li>
+          <li>Activările sponsorilor performează slab când nu sunt vizibile publicului potrivit</li>
+          <li>Coordonarea între scene se face tot pe walkie-talkie</li>
+        </ul>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Nivel tehnic</div>
+        <div class="tech-bar">
+          <div class="tech-row"><span class="tech-label">Smartphone</span><div class="tech-track"><div class="tech-fill" style="width:90%"></div></div></div>
+          <div class="tech-row"><span class="tech-label">Smartwatch</span><div class="tech-track"><div class="tech-fill" style="width:70%"></div></div></div>
+          <div class="tech-row"><span class="tech-label">AR / VR</span><div class="tech-track"><div class="tech-fill" style="width:55%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="persona-section">
+        <div class="ps-title">Dispozitive deținute</div>
+        <div class="devices">
+          <span class="device-chip">iPhone 14 Pro</span>
+          <span class="device-chip">Garmin Fenix</span>
+          <span class="device-chip">iPad Pro</span>
+          <span class="device-chip">Walkie-talkie</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="doc-footer">
+    VENU Asistent de Festival · Profiluri UX · 2026 ·
+    <a href="../README.md">acasă</a>
+  </div>
+
+</div>
+
+</body>
+</html>

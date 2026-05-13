@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VENU – Fluxuri utilizator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080814; --surface: #12122a;
+    --card: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.10);
+    --purple: #a855f7; --purple-d: #7c3aed; --pink: #ec4899;
+    --cyan: #22d3ee; --yellow: #facc15; --green: #4ade80; --red: #f87171;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh; padding: 40px 24px 80px; line-height: 1.5;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: ''; position: fixed; border-radius: 50%; filter: blur(140px);
+    pointer-events: none; z-index: 0;
+  }
+  body::before { width: 500px; height: 500px; background: rgba(168,85,247,.18); top: -150px; left: -150px; }
+  body::after  { width: 500px; height: 500px; background: rgba(34,211,238,.12); bottom: -150px; right: -150px; }
+
+  .container { max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .doc-header { text-align: center; margin-bottom: 56px; }
+  .doc-eyebrow { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .doc-title {
+    font-size: 48px; font-weight: 900; letter-spacing: -.03em;
+    background: linear-gradient(135deg, #fff, var(--purple) 60%, var(--pink) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .doc-sub { color: var(--muted); margin-top: 8px; font-size: 14px; max-width: 720px; margin-left: auto; margin-right: auto; }
+
+  .flow-block { margin-bottom: 72px; }
+  .flow-head {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 28px;
+  }
+  .flow-num {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--purple-d), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+    box-shadow: 0 4px 16px rgba(124,58,237,.4);
+  }
+  .flow-meta { flex: 1; }
+  .flow-title { font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+  .flow-platform { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+  .flow-canvas {
+    background: rgba(8,8,20,.6);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 28px;
+    overflow-x: auto;
+  }
+  .flow-canvas svg { display: block; min-width: 100%; }
+
+  .flow-legend {
+    margin-top: 16px;
+    display: flex; gap: 18px; flex-wrap: wrap;
+    font-size: 11px; color: var(--muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,.15);
+  }
+  .legend-swatch.start    { background: linear-gradient(135deg,#22d3ee,#0ea5e9); }
+  .legend-swatch.screen   { background: linear-gradient(135deg,#7c3aed,#a855f7); }
+  .legend-swatch.decision { background: rgba(250,204,21,.2); border: 1px solid #facc15; transform: rotate(45deg); border-radius:2px; }
+  .legend-swatch.action   { background: rgba(74,222,128,.2); border: 1px solid #4ade80; }
+  .legend-swatch.end      { background: linear-gradient(135deg,#ec4899,#f43f5e); }
+
+  .doc-footer { margin-top: 56px; text-align: center; color: var(--muted); font-size: 12px; }
+  .doc-footer a { color: var(--purple); text-decoration: none; font-weight: 600; }
+
+  @media print {
+    body::before, body::after { display: none; }
+    .flow-block { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-eyebrow">VENU · Asistent de festival</div>
+    <h1 class="doc-title">Fluxuri utilizator</h1>
+    <p class="doc-sub">Parcursuri end-to-end pe fiecare platformă: cum Alex (persona principală) traversează aplicația de la lansare până la îndeplinirea obiectivului.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- FLOW 1 :: MOBILE                                             -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="flow-block">
+    <div class="flow-head">
+      <div class="flow-num">01</div>
+      <div class="flow-meta">
+        <div class="flow-title">Mobil — Găsește un prieten și intră în activitate</div>
+        <div class="flow-platform">Smartphone · Dispozitiv principal</div>
+      </div>
+    </div>
+
+    <div class="flow-canvas">
+      <svg viewBox="0 0 1200 540" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g-start-1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0ea5e9"/>
+          </linearGradient>
+          <linearGradient id="g-screen-1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+          <linearGradient id="g-end-1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#f43f5e"/>
+          </linearGradient>
+          <marker id="arr-1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#a855f7"/>
+          </marker>
+        </defs>
+
+        <!-- Row 1 -->
+        <ellipse cx="100" cy="60" rx="60" ry="28" fill="url(#g-start-1)"/>
+        <text x="100" y="65" text-anchor="middle" fill="#fff" font-size="13" font-weight="800" font-family="sans-serif">PORNEȘTE</text>
+
+        <rect x="240" y="32" width="140" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="310" y="56" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Intro</text>
+        <text x="310" y="72" text-anchor="middle" fill="#fff" opacity=".7" font-size="10" font-family="sans-serif">auto 2,2s</text>
+
+        <rect x="460" y="32" width="140" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="530" y="56" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Autentificare</text>
+        <text x="530" y="72" text-anchor="middle" fill="#fff" opacity=".7" font-size="10" font-family="sans-serif">email + parolă</text>
+
+        <!-- decision: have account? -->
+        <polygon points="720,60 770,30 820,60 770,90" fill="rgba(250,204,21,.15)" stroke="#facc15" stroke-width="1.5"/>
+        <text x="770" y="55" text-anchor="middle" fill="#facc15" font-size="11" font-weight="800" font-family="sans-serif">Ai</text>
+        <text x="770" y="68" text-anchor="middle" fill="#facc15" font-size="11" font-weight="800" font-family="sans-serif">cont?</text>
+
+        <rect x="880" y="32" width="140" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="950" y="56" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Înregistrare</text>
+        <text x="950" y="72" text-anchor="middle" fill="#fff" opacity=".7" font-size="10" font-family="sans-serif">creează profil</text>
+
+        <!-- arrows row 1 -->
+        <line x1="160" y1="60" x2="240" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+        <line x1="380" y1="60" x2="460" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+        <line x1="600" y1="60" x2="720" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+        <line x1="820" y1="60" x2="880" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+        <text x="850" y="52" fill="#94a3b8" font-size="10" font-family="sans-serif">Nu</text>
+
+        <!-- yes path goes down -->
+        <path d="M 770 90 Q 770 130 600 160" fill="none" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+        <text x="700" y="125" fill="#94a3b8" font-size="10" font-family="sans-serif">Da</text>
+
+        <!-- register loops back to home -->
+        <path d="M 950 88 Q 950 140 600 160" fill="none" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+
+        <!-- Row 2 -->
+        <rect x="460" y="160" width="280" height="60" rx="14" fill="url(#g-screen-1)"/>
+        <text x="600" y="184" text-anchor="middle" fill="#fff" font-size="13" font-weight="800" font-family="sans-serif">Tablou Acasă</text>
+        <text x="600" y="202" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">Salut · Eveniment · 5 dale rapide</text>
+
+        <line x1="600" y1="220" x2="600" y2="270" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+
+        <!-- decision: what to do? -->
+        <polygon points="540,290 600,260 660,290 600,320" fill="rgba(250,204,21,.15)" stroke="#facc15" stroke-width="1.5"/>
+        <text x="600" y="285" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">Obiectiv?</text>
+        <text x="600" y="298" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">găsește prieten</text>
+
+        <!-- Row 3 - branches -->
+        <rect x="80"  y="370" width="160" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="160" y="394" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Listă prieteni</text>
+        <text x="160" y="410" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">parcurgere · căutare</text>
+
+        <rect x="280" y="370" width="160" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="360" y="394" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Hartă</text>
+        <text x="360" y="410" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">pan · zoom</text>
+
+        <rect x="480" y="370" width="160" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="560" y="394" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Activități</text>
+        <text x="560" y="410" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">filtru tip</text>
+
+        <rect x="680" y="370" width="160" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="760" y="394" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Notificări</text>
+        <text x="760" y="410" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">flux alerte</text>
+
+        <rect x="880" y="370" width="160" height="56" rx="14" fill="url(#g-screen-1)"/>
+        <text x="960" y="394" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Setări</text>
+        <text x="960" y="410" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">confidențialitate · dispozitive</text>
+
+        <!-- branches from decision -->
+        <path d="M 600 320 Q 400 340 160 370" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-1)" opacity=".6"/>
+        <path d="M 600 320 Q 480 340 360 370" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-1)" opacity=".6"/>
+        <path d="M 600 320 L 560 370" fill="none" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+        <path d="M 600 320 Q 720 340 760 370" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-1)" opacity=".6"/>
+        <path d="M 600 320 Q 820 340 960 370" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-1)" opacity=".6"/>
+
+        <!-- happy path goes via Map to detail -->
+        <line x1="360" y1="426" x2="360" y2="460" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+
+        <!-- Row 4 -->
+        <rect x="260" y="460" width="200" height="56" rx="14" fill="rgba(74,222,128,.15)" stroke="#4ade80" stroke-width="1.5"/>
+        <text x="360" y="484" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="800" font-family="sans-serif">Apasă marker prieten</text>
+        <text x="360" y="500" text-anchor="middle" fill="#4ade80" opacity=".7" font-size="9" font-family="sans-serif">se deschide fișa</text>
+
+        <line x1="460" y1="488" x2="540" y2="488" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+
+        <rect x="540" y="460" width="200" height="56" rx="14" fill="rgba(74,222,128,.15)" stroke="#4ade80" stroke-width="1.5"/>
+        <text x="640" y="484" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="800" font-family="sans-serif">Indicații</text>
+        <text x="640" y="500" text-anchor="middle" fill="#4ade80" opacity=".7" font-size="9" font-family="sans-serif">traseu desenat</text>
+
+        <line x1="740" y1="488" x2="820" y2="488" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-1)"/>
+
+        <ellipse cx="900" cy="488" rx="80" ry="30" fill="url(#g-end-1)"/>
+        <text x="900" y="486" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">ȚINTĂ</text>
+        <text x="900" y="500" text-anchor="middle" fill="#fff" opacity=".85" font-size="9" font-family="sans-serif">Prieten găsit</text>
+      </svg>
+    </div>
+
+    <div class="flow-legend">
+      <div class="legend-item"><div class="legend-swatch start"></div>Start / final</div>
+      <div class="legend-item"><div class="legend-swatch screen"></div>Ecran</div>
+      <div class="legend-item"><div class="legend-swatch decision"></div>Decizie</div>
+      <div class="legend-item"><div class="legend-swatch action"></div>Acțiune utilizator</div>
+      <div class="legend-item"><div class="legend-swatch end"></div>Obiectiv îndeplinit</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- FLOW 2 :: MR HEADSET                                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="flow-block">
+    <div class="flow-head">
+      <div class="flow-num">02</div>
+      <div class="flow-meta">
+        <div class="flow-title">Cască MR — Împerechere hands-free și navigație AR</div>
+        <div class="flow-platform">Ochelari mixed-reality · Dispozitiv companion</div>
+      </div>
+    </div>
+
+    <div class="flow-canvas">
+      <svg viewBox="0 0 1200 560" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g-start-2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0ea5e9"/>
+          </linearGradient>
+          <linearGradient id="g-screen-2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+          <linearGradient id="g-end-2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#f43f5e"/>
+          </linearGradient>
+          <marker id="arr-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#a855f7"/>
+          </marker>
+        </defs>
+
+        <!-- Row 1 -->
+        <ellipse cx="90" cy="60" rx="60" ry="28" fill="url(#g-start-2)"/>
+        <text x="90" y="65" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">PORNEȘTE</text>
+
+        <rect x="220" y="32" width="160" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="300" y="56" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Pornire</text>
+        <text x="300" y="72" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">optică · IMU · GPS</text>
+
+        <!-- decision: phone nearby? -->
+        <polygon points="450,60 510,30 570,60 510,90" fill="rgba(250,204,21,.15)" stroke="#facc15" stroke-width="1.5"/>
+        <text x="510" y="56" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">Telefon</text>
+        <text x="510" y="68" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">împerecheat?</text>
+
+        <rect x="640" y="32" width="160" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="720" y="56" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Împerechere</text>
+        <text x="720" y="72" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">cod 4 cifre</text>
+
+        <rect x="860" y="32" width="200" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="960" y="56" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">HUD Acasă</text>
+        <text x="960" y="72" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">scenă + etichete AR</text>
+
+        <line x1="150" y1="60" x2="220" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+        <line x1="380" y1="60" x2="450" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+        <line x1="570" y1="60" x2="640" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+        <text x="600" y="52" fill="#94a3b8" font-size="10" font-family="sans-serif">Nu</text>
+        <line x1="800" y1="60" x2="860" y2="60" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+
+        <!-- Yes (already paired) goes directly to HUD home -->
+        <path d="M 510 30 Q 510 0 960 30" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-2)" opacity=".7"/>
+        <text x="700" y="14" fill="#94a3b8" font-size="10" font-family="sans-serif">Da</text>
+
+        <!-- vertical from HUD Home -->
+        <line x1="960" y1="88" x2="960" y2="150" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+
+        <!-- Row 2 -->
+        <rect x="820" y="150" width="280" height="60" rx="14" fill="rgba(74,222,128,.15)" stroke="#4ade80" stroke-width="1.5"/>
+        <text x="960" y="174" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="800" font-family="sans-serif">Privește în jur (trage / cap)</text>
+        <text x="960" y="192" text-anchor="middle" fill="#4ade80" opacity=".75" font-size="10" font-family="sans-serif">etichete AR 3D</text>
+
+        <!-- decision: action? -->
+        <polygon points="900,260 960,230 1020,260 960,290" fill="rgba(250,204,21,.15)" stroke="#facc15" stroke-width="1.5"/>
+        <text x="960" y="257" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">Prinde pe</text>
+        <text x="960" y="270" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">țintă?</text>
+
+        <line x1="960" y1="210" x2="960" y2="225" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+
+        <!-- branches from decision (Row 3 - features) -->
+        <rect x="40"  y="330" width="160" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="120" y="354" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Radar / Hartă</text>
+        <text x="120" y="370" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">baleiaj 200m</text>
+
+        <rect x="240" y="330" width="160" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="320" y="354" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Navigație AR</text>
+        <text x="320" y="370" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">săgeată 3D</text>
+
+        <rect x="440" y="330" width="160" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="520" y="354" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Alertă activitate</text>
+        <text x="520" y="370" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">card popup</text>
+
+        <rect x="640" y="330" width="160" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="720" y="354" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Portal AR</text>
+        <text x="720" y="370" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">experiență sponsor</text>
+
+        <rect x="840" y="330" width="160" height="56" rx="14" fill="url(#g-screen-2)"/>
+        <text x="920" y="354" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Setări</text>
+        <text x="920" y="370" text-anchor="middle" fill="#fff" opacity=".7" font-size="9" font-family="sans-serif">gesturi · voce</text>
+
+        <path d="M 960 290 Q 600 310 120 330" fill="none" stroke="#a855f7" stroke-width="1.4" opacity=".5" marker-end="url(#arr-2)"/>
+        <path d="M 960 290 Q 700 310 320 330" fill="none" stroke="#a855f7" stroke-width="1.4" opacity=".5" marker-end="url(#arr-2)"/>
+        <path d="M 960 290 L 520 330" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-2)"/>
+        <path d="M 960 290 L 720 330" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-2)" opacity=".6"/>
+        <path d="M 960 290 L 920 330" fill="none" stroke="#a855f7" stroke-width="1.4" opacity=".5" marker-end="url(#arr-2)"/>
+
+        <!-- happy path: Activity Alert → Navigate → goal -->
+        <line x1="520" y1="386" x2="520" y2="440" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+
+        <rect x="360" y="440" width="320" height="56" rx="14" fill="rgba(74,222,128,.15)" stroke="#4ade80" stroke-width="1.5"/>
+        <text x="520" y="464" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="800" font-family="sans-serif">Gest „Navighează”</text>
+        <text x="520" y="480" text-anchor="middle" fill="#4ade80" opacity=".75" font-size="10" font-family="sans-serif">săgeată 3D în lume</text>
+
+        <line x1="680" y1="468" x2="800" y2="468" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-2)"/>
+
+        <ellipse cx="900" cy="468" rx="90" ry="30" fill="url(#g-end-2)"/>
+        <text x="900" y="466" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">ȚINTĂ</text>
+        <text x="900" y="480" text-anchor="middle" fill="#fff" opacity=".85" font-size="9" font-family="sans-serif">Ajuns la scenă</text>
+      </svg>
+    </div>
+
+    <div class="flow-legend">
+      <div class="legend-item"><div class="legend-swatch start"></div>Start (pune ochelarii)</div>
+      <div class="legend-item"><div class="legend-swatch screen"></div>Ecran HUD</div>
+      <div class="legend-item"><div class="legend-swatch decision"></div>Decizie (gest/voce)</div>
+      <div class="legend-item"><div class="legend-swatch action"></div>Acțiune utilizator</div>
+      <div class="legend-item"><div class="legend-swatch end"></div>Obiectiv îndeplinit</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- FLOW 3 :: SMARTWATCH                                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="flow-block">
+    <div class="flow-head">
+      <div class="flow-num">03</div>
+      <div class="flow-meta">
+        <div class="flow-title">Smartwatch — Privire, răspuns, navigație</div>
+        <div class="flow-platform">Wearable · Companion la o privire</div>
+      </div>
+    </div>
+
+    <div class="flow-canvas">
+      <svg viewBox="0 0 1200 540" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g-start-3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0ea5e9"/>
+          </linearGradient>
+          <linearGradient id="g-screen-3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+          <linearGradient id="g-end-3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#f43f5e"/>
+          </linearGradient>
+          <marker id="arr-3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#a855f7"/>
+          </marker>
+        </defs>
+
+        <!-- Row 1 -->
+        <ellipse cx="90" cy="80" rx="60" ry="28" fill="url(#g-start-3)"/>
+        <text x="90" y="78" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" font-family="sans-serif">ÎNCHEIET.</text>
+        <text x="90" y="92" text-anchor="middle" fill="#fff" opacity=".85" font-size="10" font-family="sans-serif">BUZZ</text>
+
+        <rect x="200" y="52" width="160" height="56" rx="14" fill="rgba(74,222,128,.15)" stroke="#4ade80" stroke-width="1.5"/>
+        <text x="280" y="76" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="800" font-family="sans-serif">Ridică mâna</text>
+        <text x="280" y="92" text-anchor="middle" fill="#4ade80" opacity=".75" font-size="10" font-family="sans-serif">ecranul se trezește</text>
+
+        <rect x="420" y="52" width="180" height="56" rx="14" fill="url(#g-screen-3)"/>
+        <text x="510" y="76" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Card notificare</text>
+        <text x="510" y="92" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">prieten / activitate / alertă</text>
+
+        <line x1="150" y1="80" x2="200" y2="80" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-3)"/>
+        <line x1="360" y1="80" x2="420" y2="80" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-3)"/>
+
+        <!-- decision: act? -->
+        <polygon points="660,80 720,50 780,80 720,110" fill="rgba(250,204,21,.15)" stroke="#facc15" stroke-width="1.5"/>
+        <text x="720" y="76" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">Acțiune</text>
+        <text x="720" y="88" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">dorită?</text>
+
+        <line x1="600" y1="80" x2="660" y2="80" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-3)"/>
+
+        <!-- No → dismiss / drop wrist -->
+        <rect x="840" y="52" width="180" height="56" rx="14" fill="rgba(255,255,255,.04)" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3"/>
+        <text x="930" y="76" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700" font-family="sans-serif">Lasă mâna</text>
+        <text x="930" y="92" text-anchor="middle" fill="#94a3b8" opacity=".7" font-size="10" font-family="sans-serif">ecran doarme · rămâi în feed</text>
+        <line x1="780" y1="80" x2="840" y2="80" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr-3)" opacity=".7"/>
+        <text x="810" y="72" fill="#94a3b8" font-size="10" font-family="sans-serif">Nu</text>
+
+        <!-- Yes goes down -->
+        <line x1="720" y1="110" x2="720" y2="160" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-3)"/>
+        <text x="730" y="140" fill="#94a3b8" font-size="10" font-family="sans-serif">Da</text>
+
+        <!-- Row 2 -->
+        <polygon points="620,180 720,150 820,180 720,210" fill="rgba(250,204,21,.15)" stroke="#facc15" stroke-width="1.5"/>
+        <text x="720" y="178" text-anchor="middle" fill="#facc15" font-size="10" font-weight="800" font-family="sans-serif">Tip notificare?</text>
+
+        <!-- Row 3 - three branches -->
+        <rect x="40"  y="270" width="180" height="60" rx="14" fill="url(#g-screen-3)"/>
+        <text x="130" y="294" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Răspuns rapid</text>
+        <text x="130" y="312" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">mesaj prieten</text>
+
+        <rect x="260" y="270" width="200" height="60" rx="14" fill="url(#g-screen-3)"/>
+        <text x="360" y="294" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Mini-navigație</text>
+        <text x="360" y="312" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">săgeată + distanță</text>
+
+        <rect x="500" y="270" width="200" height="60" rx="14" fill="url(#g-screen-3)"/>
+        <text x="600" y="294" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Detaliu activitate</text>
+        <text x="600" y="312" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">+ „Amintire / Salvează”</text>
+
+        <rect x="740" y="270" width="200" height="60" rx="14" fill="url(#g-screen-3)"/>
+        <text x="840" y="294" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Sănătate / activitate</text>
+        <text x="840" y="312" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">FC · pași · hidratare</text>
+
+        <rect x="980" y="270" width="180" height="60" rx="14" fill="url(#g-screen-3)"/>
+        <text x="1070" y="294" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Setări</text>
+        <text x="1070" y="312" text-anchor="middle" fill="#fff" opacity=".75" font-size="10" font-family="sans-serif">silențios · Nu deranja</text>
+
+        <path d="M 720 210 Q 400 230 130 270" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-3)" opacity=".7"/>
+        <path d="M 720 210 Q 550 230 360 270" fill="none" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-3)"/>
+        <path d="M 720 210 L 600 270" fill="none" stroke="#a855f7" stroke-width="1.6" marker-end="url(#arr-3)" opacity=".7"/>
+        <path d="M 720 210 Q 780 230 840 270" fill="none" stroke="#a855f7" stroke-width="1.4" marker-end="url(#arr-3)" opacity=".5"/>
+        <path d="M 720 210 Q 900 230 1070 270" fill="none" stroke="#a855f7" stroke-width="1.4" marker-end="url(#arr-3)" opacity=".5"/>
+
+        <!-- happy path from quick reply or nav -->
+        <line x1="360" y1="330" x2="360" y2="380" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-3)"/>
+
+        <rect x="200" y="380" width="320" height="56" rx="14" fill="rgba(74,222,128,.15)" stroke="#4ade80" stroke-width="1.5"/>
+        <text x="360" y="404" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="800" font-family="sans-serif">Merge + aruncă o privire · proximitate</text>
+        <text x="360" y="420" text-anchor="middle" fill="#4ade80" opacity=".75" font-size="10" font-family="sans-serif">ceas actualizează ETA la 5s</text>
+
+        <line x1="520" y1="408" x2="600" y2="408" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arr-3)"/>
+
+        <ellipse cx="700" cy="408" rx="100" ry="30" fill="url(#g-end-3)"/>
+        <text x="700" y="406" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">ȚINTĂ</text>
+        <text x="700" y="420" text-anchor="middle" fill="#fff" opacity=".85" font-size="9" font-family="sans-serif">Ajuns / răspuns / gata</text>
+      </svg>
+    </div>
+
+    <div class="flow-legend">
+      <div class="legend-item"><div class="legend-swatch start"></div>Start (vibrație încheietură)</div>
+      <div class="legend-item"><div class="legend-swatch screen"></div>Ecran ceas</div>
+      <div class="legend-item"><div class="legend-swatch decision"></div>Decizie</div>
+      <div class="legend-item"><div class="legend-swatch action"></div>Acțiune utilizator</div>
+      <div class="legend-item"><div class="legend-swatch end"></div>Obiectiv îndeplinit</div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    VENU Asistent de festival · Fluxuri utilizator · 2026 ·
+    <a href="../README.md">acasă proiect</a>
+  </div>
+
+</div>
+
+</body>
+</html>

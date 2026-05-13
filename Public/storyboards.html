@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VENU – Storyboard-uri</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080814; --surface: #12122a;
+    --card: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.10);
+    --purple: #a855f7; --purple-d: #7c3aed; --pink: #ec4899;
+    --cyan: #22d3ee; --yellow: #facc15; --green: #4ade80; --red: #f87171;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh; padding: 40px 24px 80px; line-height: 1.5;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: ''; position: fixed; border-radius: 50%; filter: blur(140px);
+    pointer-events: none; z-index: 0;
+  }
+  body::before { width: 500px; height: 500px; background: rgba(168,85,247,.18); top: -150px; left: -150px; }
+  body::after  { width: 500px; height: 500px; background: rgba(34,211,238,.12); bottom: -150px; right: -150px; }
+
+  .container { max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .doc-header { text-align: center; margin-bottom: 56px; }
+  .doc-eyebrow { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .doc-title {
+    font-size: 48px; font-weight: 900; letter-spacing: -.03em;
+    background: linear-gradient(135deg, #fff, var(--purple) 60%, var(--pink) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .doc-sub { color: var(--muted); margin-top: 8px; font-size: 14px; max-width: 720px; margin-left: auto; margin-right: auto; }
+
+  .story-block { margin-bottom: 64px; }
+  .story-head {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 22px;
+  }
+  .story-num {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--purple-d), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+    box-shadow: 0 4px 16px rgba(124,58,237,.4);
+  }
+  .story-meta { flex: 1; }
+  .story-title { font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+  .story-platform {
+    font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--muted); margin-top: 2px;
+  }
+  .story-persona {
+    padding: 6px 14px;
+    background: rgba(168,85,247,.15);
+    border: 1px solid rgba(168,85,247,.35);
+    border-radius: 999px;
+    font-size: 11px; font-weight: 700;
+    color: var(--purple);
+    letter-spacing: .04em;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform .2s, border-color .2s;
+  }
+  .panel:hover { transform: translateY(-3px); border-color: rgba(168,85,247,.3); }
+  .panel-illu {
+    height: 180px;
+    background: linear-gradient(180deg, rgba(168,85,247,.10), rgba(0,0,0,.4));
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-illu svg { width: 100%; height: 100%; }
+  .panel-step {
+    position: absolute;
+    top: 10px; left: 10px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--purple);
+    color: #fff;
+    font-size: 12px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(168,85,247,.4);
+    z-index: 5;
+  }
+  .panel-body { padding: 16px 18px 18px; flex: 1; display: flex; flex-direction: column; }
+  .panel-title { font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .panel-text { font-size: 12px; color: var(--muted); line-height: 1.55; flex: 1; }
+  .panel-tag {
+    margin-top: 12px;
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(34,211,238,.15);
+    color: var(--cyan);
+    letter-spacing: .04em;
+    align-self: flex-start;
+  }
+  .panel-tag.emotion-happy   { background: rgba(74,222,128,.18); color: var(--green); }
+  .panel-tag.emotion-worried { background: rgba(248,113,113,.18); color: var(--red); }
+  .panel-tag.emotion-excited { background: rgba(236,72,153,.18); color: var(--pink); }
+  .panel-tag.emotion-calm    { background: rgba(34,211,238,.18); color: var(--cyan); }
+  .panel-tag.emotion-curious { background: rgba(250,204,21,.18); color: var(--yellow); }
+
+  .doc-footer { margin-top: 56px; text-align: center; color: var(--muted); font-size: 12px; }
+  .doc-footer a { color: var(--purple); text-decoration: none; font-weight: 600; }
+
+  @media print {
+    body::before, body::after { display: none; }
+    .panel { break-inside: avoid; }
+    .story-block { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-eyebrow">VENU · Asistent de festival</div>
+    <h1 class="doc-title">Storyboard-uri</h1>
+    <p class="doc-sub">Câte un storyboard pe platformă: cum interacționează persona principală (Alex Popescu) cu VENU pe mobil, cască MR și smartwatch într-o zi reală de festival.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- STORYBOARD 1 :: MOBILE                                       -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="story-block">
+    <div class="story-head">
+      <div class="story-num">01</div>
+      <div class="story-meta">
+        <div class="story-title">Aplicație mobilă — „Găsind-o pe Maria înainte de Irina Rimes”</div>
+        <div class="story-platform">Smartphone · Dispozitiv principal · 21:30 → 21:45</div>
+      </div>
+      <span class="story-persona">PERSONA · Alex (24)</span>
+    </div>
+
+    <div class="panels">
+      <!-- Panel 1 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">1</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#1a0a3a"/>
+            <ellipse cx="120" cy="170" rx="200" ry="30" fill="#0a0820"/>
+            <circle cx="120" cy="80"  r="22" fill="#a855f7"/>
+            <rect x="105" y="100" width="30" height="40" rx="6" fill="#a855f7"/>
+            <rect x="80" y="60" width="80" height="100" rx="14" fill="#0e0e22" stroke="#a855f7" stroke-width="1.5" opacity=".5"/>
+            <rect x="92" y="78" width="56" height="80" rx="6" fill="#1a0a3a"/>
+            <text x="120" y="120" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="700" font-family="sans-serif">VENU</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">La intrarea în festival</div>
+          <div class="panel-text">Alex scoate telefonul la poartă și deschide VENU. Ecranul de bun venit îl întâmpină, iar amprenta deblochează rapid aplicația.</div>
+          <span class="panel-tag emotion-excited">Încântat</span>
+        </div>
+      </div>
+
+      <!-- Panel 2 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">2</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <rect x="40" y="30" width="160" height="130" rx="16" fill="#0e0e22" stroke="#a855f7" stroke-width="1.5"/>
+            <rect x="56" y="50" width="60" height="40" rx="8" fill="#1a0a3a" stroke="#22d3ee" stroke-width="1"/>
+            <rect x="124" y="50" width="60" height="40" rx="8" fill="#1a0a3a" stroke="#facc15" stroke-width="1"/>
+            <rect x="56" y="98" width="60" height="40" rx="8" fill="#1a0a3a" stroke="#ec4899" stroke-width="1"/>
+            <rect x="124" y="98" width="60" height="40" rx="8" fill="#1a0a3a" stroke="#4ade80" stroke-width="1"/>
+            <text x="86" y="74" text-anchor="middle" fill="#22d3ee" font-size="8" font-weight="700" font-family="sans-serif">HARTĂ</text>
+            <text x="154" y="74" text-anchor="middle" fill="#facc15" font-size="7" font-weight="700" font-family="sans-serif">PRIETENI</text>
+            <text x="86" y="122" text-anchor="middle" fill="#ec4899" font-size="7" font-weight="700" font-family="sans-serif">ACTIVITATE</text>
+            <text x="154" y="122" text-anchor="middle" fill="#4ade80" font-size="7" font-weight="700" font-family="sans-serif">ALERTE</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Privire peste ecranul Acasă</div>
+          <div class="panel-text">Acasă îl întâmpină: „Bună seara, Alex.” Un banner live arată că Electric Castle 2026 e activ. Vede 4 prieteni online și 5 activități în desfășurare.</div>
+          <span class="panel-tag emotion-curious">Curios</span>
+        </div>
+      </div>
+
+      <!-- Panel 3 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">3</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0c180c"/>
+            <rect x="20" y="20" width="200" height="140" rx="12" fill="#182818"/>
+            <rect x="40" y="40" width="60" height="40" rx="6" fill="#1a3a1a" stroke="#4ade80" stroke-width="1"/>
+            <rect x="120" y="40" width="60" height="40" rx="6" fill="#1a3a1a" stroke="#4ade80" stroke-width="1"/>
+            <text x="70" y="65" text-anchor="middle" font-size="16" font-family="sans-serif">🎤</text>
+            <text x="150" y="65" text-anchor="middle" font-size="16" font-family="sans-serif">🎸</text>
+            <circle cx="120" cy="120" r="8" fill="#a855f7"/>
+            <text x="120" y="142" text-anchor="middle" fill="#a855f7" font-size="9" font-weight="700" font-family="sans-serif">TU</text>
+            <circle cx="170" cy="95" r="6" fill="#22d3ee"/>
+            <text x="170" y="115" text-anchor="middle" fill="#22d3ee" font-size="8" font-weight="700" font-family="sans-serif">MARIA</text>
+            <line x1="120" y1="115" x2="170" y2="100" stroke="#22d3ee" stroke-dasharray="3,3" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Deschide harta festivalului</div>
+          <div class="panel-text">Alex apasă „Hartă”. Festivalul apare cu scene, prietenii ca puncte și markerul lui mov. Punctul albastru al Mariei pulsează lângă scena principală.</div>
+          <span class="panel-tag emotion-calm">Concentrat</span>
+        </div>
+      </div>
+
+      <!-- Panel 4 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">4</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <rect x="30" y="40" width="180" height="120" rx="16" fill="#12122a" stroke="#22d3ee" stroke-width="1.5"/>
+            <circle cx="65" cy="80" r="18" fill="#22d3ee"/>
+            <text x="65" y="86" text-anchor="middle" fill="#0e0e22" font-size="14" font-weight="900" font-family="sans-serif">M</text>
+            <text x="95" y="76" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">Maria</text>
+            <text x="95" y="92" fill="#22d3ee" font-size="9" font-weight="600" font-family="sans-serif">120 m · scena principală</text>
+            <rect x="50" y="118" width="140" height="28" rx="8" fill="#7c3aed"/>
+            <text x="120" y="136" text-anchor="middle" fill="#fff" font-size="10" font-weight="800" font-family="sans-serif">INDICAȚII</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Apasă markerul Mariei</div>
+          <div class="panel-text">Fișa ei urcă: status, bio, prieteni comuni, distanță exactă. Apasă „Indicații” și traseul apare pe hartă.</div>
+          <span class="panel-tag emotion-happy">Ușurat</span>
+        </div>
+      </div>
+
+      <!-- Panel 5 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">5</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#1a0a3a"/>
+            <rect x="20" y="30" width="200" height="50" rx="12" fill="rgba(168,85,247,.25)" stroke="#a855f7" stroke-width="1.5"/>
+            <circle cx="40" cy="55" r="10" fill="#ec4899"/>
+            <text x="40" y="60" text-anchor="middle" font-size="11" font-family="sans-serif">🎤</text>
+            <text x="60" y="50" fill="#fff" font-size="11" font-weight="800" font-family="sans-serif">Irina Rimes</text>
+            <text x="60" y="65" fill="#a855f7" font-size="9" font-weight="600" font-family="sans-serif">În 5 min · scena principală</text>
+            <rect x="40" y="100" width="160" height="50" rx="12" fill="#0e0e22" stroke="#22d3ee" stroke-width="1"/>
+            <text x="120" y="125" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="700" font-family="sans-serif">În drum spre Maria</text>
+            <text x="120" y="140" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="sans-serif">ETA 2 min</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Alertă de activitate</div>
+          <div class="panel-text">O notificare push: Irina Rimes începe în 5 minute. Alex aruncă o privire, apasă Amână și merge mai departe — deja e pe direcția bună.</div>
+          <span class="panel-tag emotion-excited">Electrizat</span>
+        </div>
+      </div>
+
+      <!-- Panel 6 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">6</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#1a0a3a"/>
+            <rect x="40" y="60" width="160" height="50" rx="8" fill="#a855f7" opacity=".7"/>
+            <text x="120" y="92" text-anchor="middle" font-size="22" font-family="sans-serif">🎤</text>
+            <ellipse cx="120" cy="170" rx="160" ry="25" fill="#0a0820"/>
+            <circle cx="60" cy="155" r="6" fill="#0a0820"/>
+            <circle cx="90" cy="158" r="7" fill="#0a0820"/>
+            <circle cx="120" cy="155" r="6" fill="#0a0820"/>
+            <circle cx="150" cy="160" r="7" fill="#0a0820"/>
+            <circle cx="180" cy="156" r="6" fill="#0a0820"/>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Regăsire și primul rând</div>
+          <div class="panel-text">Alex o găsește pe Maria cu 30 de secunde înainte să urce Irina pe scenă. Împreună aplaudă; VENU tace liniștit în buzunar — exact cum trebuie.</div>
+          <span class="panel-tag emotion-happy">Fericit</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- STORYBOARD 2 :: MR HEADSET                                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="story-block">
+    <div class="story-head">
+      <div class="story-num">02</div>
+      <div class="story-meta">
+        <div class="story-title">Cască MR — „Explorare fără mâini”</div>
+        <div class="story-platform">Ochelari mixed-reality · Dispozitiv companion · 22:10 → 22:25</div>
+      </div>
+      <span class="story-persona">PERSONA · Alex (24)</span>
+    </div>
+
+    <div class="panels">
+      <!-- 1 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">1</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <ellipse cx="120" cy="90" rx="80" ry="42" fill="#1a1a2e" stroke="#a855f7" stroke-width="1.5"/>
+            <ellipse cx="100" cy="90" rx="22" ry="22" fill="#000"/>
+            <ellipse cx="140" cy="90" rx="22" ry="22" fill="#000"/>
+            <circle cx="100" cy="90" r="4" fill="#a855f7"/>
+            <circle cx="140" cy="90" r="4" fill="#a855f7"/>
+            <rect x="40" y="80" width="14" height="6" fill="#1a1a2e" stroke="#a855f7" stroke-width=".8"/>
+            <rect x="186" y="80" width="14" height="6" fill="#1a1a2e" stroke="#a855f7" stroke-width=".8"/>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Pune ochelarii</div>
+          <div class="panel-text">Întors de la toaletă, Alex își pune ochelarii VENU AR. Optica pornește — logo-ul VENU luminează, IMU se calibrează, GPS se fixează. În 3 secunde totul e gata.</div>
+          <span class="panel-tag emotion-curious">Curios</span>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">2</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <rect x="20" y="30" width="200" height="120" rx="20" fill="#000" stroke="#a855f7" stroke-width=".8"/>
+            <rect x="30" y="40" width="60" height="80" rx="8" fill="#1a0a3a"/>
+            <text x="60" y="80" text-anchor="middle" font-size="20" font-family="sans-serif">📱</text>
+            <text x="60" y="100" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="700" font-family="sans-serif">TELEFON</text>
+            <line x1="95" y1="70" x2="145" y2="70" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <circle cx="120" cy="70" r="4" fill="#22d3ee"/>
+            <rect x="150" y="40" width="60" height="80" rx="8" fill="#1a0a3a"/>
+            <text x="180" y="82" text-anchor="middle" font-size="18" font-family="sans-serif">👓</text>
+            <text x="180" y="100" text-anchor="middle" fill="#22d3ee" font-size="7" font-weight="700" font-family="sans-serif">OCHELARI</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Împerechere automată cu telefonul</div>
+          <div class="panel-text">VENU îl detectează pe UWB și cere confirmare. El prinde în aer gestul „Continuă” — profilul, prietenii și programul salvat se sincronizează instant.</div>
+          <span class="panel-tag emotion-calm">Liniștit</span>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">3</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#1a0a3a"/>
+            <rect x="80" y="50" width="80" height="40" rx="4" fill="#a855f7" opacity=".6"/>
+            <text x="120" y="78" text-anchor="middle" font-size="18">🎤</text>
+            <ellipse cx="120" cy="155" rx="120" ry="20" fill="#0a0820"/>
+            <rect x="30" y="100" width="50" height="20" rx="8" fill="rgba(8,8,20,.85)" stroke="#a855f7" stroke-width="1"/>
+            <text x="55" y="113" text-anchor="middle" fill="#fff" font-size="7" font-weight="800" font-family="sans-serif">🎤 MAIN STAGE</text>
+            <rect x="155" y="115" width="60" height="20" rx="8" fill="rgba(8,8,20,.85)" stroke="#facc15" stroke-width="1"/>
+            <text x="185" y="128" text-anchor="middle" fill="#fff" font-size="7" font-weight="800" font-family="sans-serif">🍦 GRATIS</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Etichete AR plutesc în spațiu</div>
+          <div class="panel-text">Se uită în jur: deasupra fiecărei scene și stand flutură o etichetă — distanță, headliner, timp de așteptare. Întoarce capul și descoperă un stand cu înghețată gratis la 90 m.</div>
+          <span class="panel-tag emotion-excited">Încântat</span>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">4</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <g>
+              <polygon points="120,40 170,110 145,110 145,150 95,150 95,110 70,110" fill="#ec4899" stroke="#fff" stroke-width="1.5" opacity=".9"/>
+            </g>
+            <line x1="40" y1="160" x2="80" y2="120" stroke="#a855f7" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="200" y1="160" x2="160" y2="120" stroke="#a855f7" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="140" x2="240" y2="140" stroke="#a855f7" opacity=".3"/>
+            <text x="120" y="172" text-anchor="middle" fill="#22d3ee" font-size="9" font-weight="700" font-family="sans-serif">90 m înainte</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Săgeată 3D îl ghidează</div>
+          <div class="panel-text">Spune „VENU, du-mă la standul de înghețată”. O săgeată 3D luminoasă apare, cu grilă de perspectivă pe sol. Merge fără să se uite în jos.</div>
+          <span class="panel-tag emotion-curious">Încrezător</span>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">5</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#050510"/>
+            <circle cx="120" cy="90" r="60" fill="none" stroke="#a855f7" stroke-width="2" stroke-dasharray="4,3"/>
+            <circle cx="120" cy="90" r="46" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <circle cx="120" cy="90" r="34" fill="#ec4899" opacity=".4"/>
+            <circle cx="120" cy="90" r="22" fill="#a855f7" opacity=".5"/>
+            <circle cx="120" cy="90" r="10" fill="#fff" opacity=".8"/>
+            <text x="120" y="160" text-anchor="middle" fill="#22d3ee" font-size="9" font-weight="800" font-family="sans-serif">PORTAL AR · intră</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Apare un portal AR</div>
+          <div class="panel-text">Pe drum se deschide un portal învârtind — activare sponsor. Alex se uită înăuntru: 30 secunde de micro-experiență de brand, apoi un cupon intră în portofel.</div>
+          <span class="panel-tag emotion-excited">Wow</span>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">6</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#1a0a3a"/>
+            <rect x="60" y="40" width="120" height="80" rx="12" fill="rgba(8,8,20,.85)" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="120" y="65" text-anchor="middle" font-size="14">🎤</text>
+            <text x="120" y="84" text-anchor="middle" fill="#fff" font-size="11" font-weight="800" font-family="sans-serif">Irina Rimes</text>
+            <text x="120" y="98" text-anchor="middle" fill="#f87171" font-size="14" font-weight="900" font-family="sans-serif">5:00</text>
+            <text x="120" y="112" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="sans-serif">începe în</text>
+            <rect x="70" y="135" width="100" height="22" rx="6" fill="#7c3aed"/>
+            <text x="120" y="150" text-anchor="middle" fill="#fff" font-size="9" font-weight="800" font-family="sans-serif">NAVIGHEAZĂ</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Activitatea intră în câmpul vizual</div>
+          <div class="panel-text">Un popup de alertă: Irina Rimes în 5 min. Prinde gestul „Navighează” și săgeata se redirectează. Fără mâini, privirea sus — nu deschide telefonul.</div>
+          <span class="panel-tag emotion-happy">În flux</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- STORYBOARD 3 :: SMARTWATCH                                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="story-block">
+    <div class="story-head">
+      <div class="story-num">03</div>
+      <div class="story-meta">
+        <div class="story-title">Smartwatch — „Privire, apasă, gata”</div>
+        <div class="story-platform">Wearable · Companion la o privire · 22:30 → 22:33</div>
+      </div>
+      <span class="story-persona">PERSONA · Alex (24)</span>
+    </div>
+
+    <div class="panels">
+      <!-- 1 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">1</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <rect x="100" y="60" width="40" height="60" rx="14" fill="#1a1a2e" stroke="#a855f7" stroke-width="1.5"/>
+            <rect x="106" y="68" width="28" height="44" rx="6" fill="#0a0820"/>
+            <circle cx="120" cy="90" r="6" fill="#a855f7" opacity=".7"/>
+            <rect x="118" y="42" width="4" height="18" fill="#1a1a2e"/>
+            <rect x="118" y="120" width="4" height="18" fill="#1a1a2e"/>
+            <circle cx="155" cy="85" r="3" fill="#facc15"/>
+            <line x1="148" y1="85" x2="158" y2="78" stroke="#facc15" stroke-width="1"/>
+            <line x1="148" y1="85" x2="158" y2="92" stroke="#facc15" stroke-width="1"/>
+            <line x1="142" y1="78" x2="148" y2="85" stroke="#facc15" stroke-width="1"/>
+            <line x1="142" y1="92" x2="148" y2="85" stroke="#facc15" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Vibrație la încheietură</div>
+          <div class="panel-text">Cu mâinile pline de pahare, Alex simte ceasul că îi lovește de două ori încheietura — un tipar scurt de vibrație rezervat alertelor VENU. Își ridică mâna.</div>
+          <span class="panel-tag emotion-curious">Alertă</span>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">2</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <circle cx="120" cy="90" r="55" fill="#0e0e22" stroke="#a855f7" stroke-width="2"/>
+            <text x="120" y="72" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="sans-serif">PRIETEN APROAPE</text>
+            <circle cx="120" cy="95" r="12" fill="#ec4899"/>
+            <text x="120" y="100" text-anchor="middle" fill="#fff" font-size="10" font-weight="900" font-family="sans-serif">M</text>
+            <text x="120" y="120" text-anchor="middle" fill="#fff" font-size="9" font-weight="800" font-family="sans-serif">Maria · 80m</text>
+            <text x="120" y="135" text-anchor="middle" fill="#22d3ee" font-size="7" font-weight="600" font-family="sans-serif">Apasă răspuns</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Card la o privire</div>
+          <div class="panel-text">Ecranul se trezește cu avatarul Mariei, 80 m și mesajul „unde ești?”. Totul în sub o secundă. Fără telefon, fără scroll.</div>
+          <span class="panel-tag emotion-calm">Liniștit</span>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">3</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <circle cx="120" cy="90" r="55" fill="#0e0e22" stroke="#a855f7" stroke-width="2"/>
+            <text x="120" y="62" text-anchor="middle" fill="#94a3b8" font-size="7" font-weight="700" font-family="sans-serif">RĂSPUNS RAPID</text>
+            <rect x="80" y="74" width="80" height="16" rx="8" fill="rgba(74,222,128,.2)" stroke="#4ade80" stroke-width="1"/>
+            <text x="120" y="85" text-anchor="middle" fill="#4ade80" font-size="8" font-weight="800" font-family="sans-serif">👍 Pe drum</text>
+            <rect x="80" y="94" width="80" height="16" rx="8" fill="rgba(168,85,247,.2)" stroke="#a855f7" stroke-width="1"/>
+            <text x="120" y="105" text-anchor="middle" fill="#a855f7" font-size="8" font-weight="800" font-family="sans-serif">📍 Trimite locația</text>
+            <rect x="80" y="114" width="80" height="16" rx="8" fill="rgba(248,113,113,.2)" stroke="#f87171" stroke-width="1"/>
+            <text x="120" y="125" text-anchor="middle" fill="#f87171" font-size="8" font-weight="800" font-family="sans-serif">🙅 În 10 min</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">3 răspunsuri presetate</div>
+          <div class="panel-text">VENU afișează trei răspunsuri rapide contextual. Alex răsucește coroana până la „Pe drum” și atinge ecranul pentru trimitere.</div>
+          <span class="panel-tag emotion-happy">Eficient</span>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">4</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <circle cx="120" cy="90" r="55" fill="#0e0e22" stroke="#a855f7" stroke-width="2"/>
+            <polygon points="120,55 142,90 130,90 130,118 110,118 110,90 98,90" fill="#a855f7"/>
+            <text x="120" y="138" text-anchor="middle" fill="#22d3ee" font-size="8" font-weight="800" font-family="sans-serif">80 m înainte</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Mini-navigație</div>
+          <div class="panel-text">Ceasul arată o săgeată mare înainte și distanța rămasă. Continuă să meargă fără să se întoarcă spre încheietură.</div>
+          <span class="panel-tag emotion-calm">Concentrat</span>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">5</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <circle cx="120" cy="90" r="55" fill="#0e0e22" stroke="#4ade80" stroke-width="2"/>
+            <path d="M 100 92 L 115 107 L 142 78" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/>
+            <text x="120" y="140" text-anchor="middle" fill="#4ade80" font-size="9" font-weight="800" font-family="sans-serif">Ne-am regăsit!</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Confirmare întâlnire la atingere</div>
+          <div class="panel-text">Când proximitatea scade sub 5 m, ceasul confirmă cu bifă verde și haptic ușor. Ceasul Mariei vibrează și el — fac semn cu mâna.</div>
+          <span class="panel-tag emotion-happy">Conectat</span>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="panel">
+        <div class="panel-illu">
+          <span class="panel-step">6</span>
+          <svg viewBox="0 0 240 180">
+            <rect width="240" height="180" fill="#0a0820"/>
+            <circle cx="120" cy="90" r="55" fill="#0e0e22" stroke="#a855f7" stroke-width="2"/>
+            <text x="120" y="78" text-anchor="middle" fill="#94a3b8" font-size="6" font-weight="700" font-family="sans-serif">PULS · PAȘI</text>
+            <text x="100" y="98" text-anchor="middle" fill="#f87171" font-size="14" font-weight="900" font-family="sans-serif">112</text>
+            <text x="100" y="110" text-anchor="middle" fill="#f87171" font-size="6" font-family="sans-serif">bpm</text>
+            <text x="142" y="98" text-anchor="middle" fill="#facc15" font-size="14" font-weight="900" font-family="sans-serif">14.2k</text>
+            <text x="142" y="110" text-anchor="middle" fill="#facc15" font-size="6" font-family="sans-serif">pași</text>
+            <text x="120" y="132" text-anchor="middle" fill="#a855f7" font-size="7" font-weight="700" font-family="sans-serif">Coroana pentru scroll →</text>
+          </svg>
+        </div>
+        <div class="panel-body">
+          <div class="panel-title">Privire laterală: vitaluri și zi</div>
+          <div class="panel-text">Mai târziu glisează o dată: puls, pași, reminder de hidratare. Ceasul înregistrează ziua de festival ca „amintire” — rezumatul ajunge mâine pe telefon.</div>
+          <span class="panel-tag emotion-curious">Conștient</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    VENU Asistent de festival · Storyboard-uri · 2026 ·
+    <a href="../README.md">acasă proiect</a>
+  </div>
+
+</div>
+
+</body>
+</html>
